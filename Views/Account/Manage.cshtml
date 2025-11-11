@@ -1,0 +1,128 @@
+@model ManageViewModel
+@{
+    ViewData["Title"] = "Account Settings";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold">Account Settings</h2>
+                <p class="text-muted">Manage your profile and account preferences</p>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>@TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <div class="card shadow-sm fade-in">
+                <div class="card-body p-4">
+                    <form asp-action="Manage" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <h5 class="mb-3 text-muted">Profile Information</h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="FirstName" class="form-label">First Name</label>
+                                <input asp-for="FirstName" class="form-control" placeholder="John" />
+                                <span asp-validation-for="FirstName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="LastName" class="form-label">Last Name</label>
+                                <input asp-for="LastName" class="form-control" placeholder="Doe" />
+                                <span asp-validation-for="LastName" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">Email</label>
+                            <input asp-for="Email" class="form-control" placeholder="you@example.com" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="ProfilePictureUrl" class="form-label">Profile Picture URL</label>
+                            <input asp-for="ProfilePictureUrl" class="form-control" placeholder="https://example.com/avatar.jpg" />
+                            <span asp-validation-for="ProfilePictureUrl" class="text-danger small"></span>
+                            <small class="text-muted">Enter a URL to your profile picture (optional)</small>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="mb-3 text-muted">Change Password</h5>
+
+                        <div class="mb-3 form-check">
+                            <input asp-for="ChangePassword" class="form-check-input" id="changePasswordCheck" />
+                            <label asp-for="ChangePassword" class="form-check-label" for="changePasswordCheck">
+                                I want to change my password
+                            </label>
+                        </div>
+
+                        <div id="passwordFields" style="display: none;">
+                            <div class="mb-3">
+                                <label asp-for="CurrentPassword" class="form-label">Current Password</label>
+                                <input asp-for="CurrentPassword" class="form-control" placeholder="Enter your current password" />
+                                <span asp-validation-for="CurrentPassword" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="NewPassword" class="form-label">New Password</label>
+                                <input asp-for="NewPassword" class="form-control" placeholder="Enter a new password" />
+                                <span asp-validation-for="NewPassword" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-4">
+                                <label asp-for="ConfirmPassword" class="form-label">Confirm New Password</label>
+                                <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm your new password" />
+                                <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle me-2"></i>Save Changes
+                            </button>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <a asp-controller="Home" asp-action="Index" class="text-muted text-decoration-none">
+                    <i class="bi bi-arrow-left"></i> Back to home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Toggle password fields visibility
+        const changePasswordCheck = document.getElementById('changePasswordCheck');
+        const passwordFields = document.getElementById('passwordFields');
+
+        function togglePasswordFields() {
+            if (changePasswordCheck.checked) {
+                passwordFields.style.display = 'block';
+            } else {
+                passwordFields.style.display = 'none';
+            }
+        }
+
+        changePasswordCheck.addEventListener('change', togglePasswordFields);
+
+        // Check on page load
+        togglePasswordFields();
+    </script>
+}
