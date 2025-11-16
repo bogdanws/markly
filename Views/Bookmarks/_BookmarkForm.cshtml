@@ -1,0 +1,45 @@
+@model BookmarkFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+@if (Model.Id.HasValue)
+{
+    <input type="hidden" asp-for="Id" />
+}
+
+<div class="mb-3">
+    <label asp-for="Title" class="form-label fw-semibold"></label>
+    <input asp-for="Title" class="form-control" placeholder="Add a descriptive title" />
+    <span asp-validation-for="Title" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Description" class="form-label fw-semibold"></label>
+    <textarea asp-for="Description" class="form-control" rows="3" placeholder="What is this bookmark about?"></textarea>
+    <span asp-validation-for="Description" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="TextContent" class="form-label fw-semibold"></label>
+    <textarea asp-for="TextContent" class="form-control" rows="5" placeholder="Add notes or additional context (markdown-style text works well)."></textarea>
+    <span asp-validation-for="TextContent" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="ImageUrl" class="form-label fw-semibold"></label>
+    <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/preview.png" />
+    <div class="form-text">Supports PNG, JPG, GIF, etc. Use a publicly accessible URL.</div>
+    <span asp-validation-for="ImageUrl" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="VideoUrl" class="form-label fw-semibold"></label>
+    <input asp-for="VideoUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=..." />
+    <div class="form-text">Paste a YouTube or Vimeo link to generate an embedded player.</div>
+    <span asp-validation-for="VideoUrl" class="text-danger"></span>
+</div>
+
+<div class="form-check form-switch mb-4">
+    <input asp-for="IsPublic" class="form-check-input" />
+    <label asp-for="IsPublic" class="form-check-label"></label>
+</div>

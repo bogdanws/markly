@@ -1,0 +1,37 @@
+@model BookmarkFormViewModel
+
+@{
+    ViewData["Title"] = "Create Bookmark";
+}
+
+<section class="container py-5" style="max-width: 720px;">
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">Create Bookmark</h1>
+                    <p class="text-muted mb-0">Save a resource with optional notes, images, or videos.</p>
+                </div>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                    Cancel
+                </a>
+            </div>
+
+            <form asp-action="Create" method="post" novalidate>
+                <partial name="_BookmarkForm" />
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-circle me-1"></i> Save bookmark
+                    </button>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-link text-decoration-none">
+                        Discard
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,32 @@
+@model BookmarkDetailsViewModel
+
+@{
+    ViewData["Title"] = "Delete Bookmark";
+}
+
+<section class="container py-5" style="max-width: 720px;">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <h1 class="h4 text-danger mb-3">Delete bookmark</h1>
+            <p class="text-muted">
+                Are you sure you want to delete <strong>@Model.Title</strong>? This action cannot be undone.
+            </p>
+
+            <div class="border rounded p-3 mb-4 bg-light">
+                <p class="mb-1"><strong>Description:</strong> @Model.Description</p>
+                <p class="mb-0"><strong>Visibility:</strong> @(Model.IsPublic ? "Public" : "Private")</p>
+            </div>
+
+            <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i> Yes, delete it
+                    </button>
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
