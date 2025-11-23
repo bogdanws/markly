@@ -1,36 +1,11 @@
-@model BookmarkFormViewModel
+@model markly.ViewModels.BookmarkFormViewModel
 
 @{
     ViewData["Title"] = "Edit Bookmark";
+    ViewData["Action"] = "Edit";
 }
 
-<section class="container py-5" style="max-width: 720px;">
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h1 class="h3 mb-1">Edit Bookmark</h1>
-                    <p class="text-muted mb-0">Update the content and media for this bookmark.</p>
-                </div>
-                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary btn-sm">
-                    Back to details
-                </a>
-            </div>
-
-            <form asp-action="Edit" method="post" novalidate>
-                <partial name="_BookmarkForm" />
-                <div class="d-flex gap-3">
-                    <button type="submit" class="btn btn-primary px-4">
-                        <i class="bi bi-save me-1"></i> Save changes
-                    </button>
-                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link text-decoration-none">
-                        Cancel
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
-</section>
+<partial name="_BookmarkEditor" model="Model" />
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

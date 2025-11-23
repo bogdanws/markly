@@ -1,45 +1,93 @@
-@model BookmarkFormViewModel
+@model markly.ViewModels.BookmarkFormViewModel
 
-<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+<div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3" role="alert"></div>
 
 @if (Model.Id.HasValue)
 {
     <input type="hidden" asp-for="Id" />
 }
 
-<div class="mb-3">
-    <label asp-for="Title" class="form-label fw-semibold"></label>
-    <input asp-for="Title" class="form-control" placeholder="Add a descriptive title" />
+@* Title *@
+<div class="mb-4">
+    <label asp-for="Title" class="form-label fw-bold">
+        Title <span class="text-danger" title="Required">*</span>
+    </label>
+    <input asp-for="Title" class="form-control form-control-lg" placeholder="e.g., Awesome Documentation" autofocus />
     <span asp-validation-for="Title" class="text-danger"></span>
 </div>
 
-<div class="mb-3">
-    <label asp-for="Description" class="form-label fw-semibold"></label>
-    <textarea asp-for="Description" class="form-control" rows="3" placeholder="What is this bookmark about?"></textarea>
+@* Media Section - Prominent *@
+<div class="card bg-light border-0 mb-4">
+    <div class="card-body">
+        <h6 class="card-title fw-bold mb-3"><i class="bi bi-images me-2"></i>Media Content</h6>
+        <p class="card-text text-muted small mb-3">Add visual content to make your bookmark stand out. We support images and videos.</p>
+        
+        <div class="row g-3">
+            <div class="col-12">
+                <label asp-for="ImageUrl" class="form-label fw-semibold">Cover Image URL</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-image"></i></span>
+                    <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/image.png" />
+                </div>
+                <div class="form-text small">Direct link to a JPG, PNG, or GIF.</div>
+                <span asp-validation-for="ImageUrl" class="text-danger"></span>
+            </div>
+            
+            <div class="col-12">
+                <label asp-for="VideoUrl" class="form-label fw-semibold">Video URL</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-play-btn"></i></span>
+                    <input asp-for="VideoUrl" class="form-control" placeholder="https://youtube.com/watch?v=..." />
+                </div>
+                <div class="form-text small">YouTube or Vimeo link.</div>
+                <span asp-validation-for="VideoUrl" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Description *@
+<div class="mb-4">
+    <label asp-for="Description" class="form-label fw-bold">
+        Short Description <span class="text-danger" title="Required">*</span>
+    </label>
+    <textarea asp-for="Description" class="form-control" rows="2" placeholder="Brief summary of the resource..."></textarea>
     <span asp-validation-for="Description" class="text-danger"></span>
 </div>
 
-<div class="mb-3">
-    <label asp-for="TextContent" class="form-label fw-semibold"></label>
-    <textarea asp-for="TextContent" class="form-control" rows="5" placeholder="Add notes or additional context (markdown-style text works well)."></textarea>
+@* Extended Notes *@
+<div class="mb-4">
+    <label asp-for="TextContent" class="form-label fw-semibold">
+        Extended Notes <span class="text-muted small fw-normal">(Optional)</span>
+    </label>
+    <textarea asp-for="TextContent" class="form-control" rows="4" placeholder="Detailed notes, code snippets, or markdown content..."></textarea>
     <span asp-validation-for="TextContent" class="text-danger"></span>
 </div>
 
-<div class="mb-3">
-    <label asp-for="ImageUrl" class="form-label fw-semibold"></label>
-    <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/preview.png" />
-    <div class="form-text">Supports PNG, JPG, GIF, etc. Use a publicly accessible URL.</div>
-    <span asp-validation-for="ImageUrl" class="text-danger"></span>
+@* Visibility Settings *@
+<div class="d-flex align-items-center py-2">
+    <div class="form-check form-switch flex-grow-1">
+        <input asp-for="IsPublic" class="form-check-input" id="isPublicSwitch" onchange="updateVisibilityText()" />
+        <label asp-for="IsPublic" class="form-check-label fw-semibold">Make Public</label>
+        <div class="text-muted small ms-3 d-inline-block" id="visibilityText">
+            <i class="bi @(Model.IsPublic ? "bi-eye" : "bi-eye-slash") me-1" id="visibilityIcon"></i>
+            <span id="visibilityLabel">@(Model.IsPublic ? "Visible to everyone" : "Visible only to you")</span>
+        </div>
+    </div>
 </div>
 
-<div class="mb-3">
-    <label asp-for="VideoUrl" class="form-label fw-semibold"></label>
-    <input asp-for="VideoUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=..." />
-    <div class="form-text">Paste a YouTube or Vimeo link to generate an embedded player.</div>
-    <span asp-validation-for="VideoUrl" class="text-danger"></span>
-</div>
+<script>
+    function updateVisibilityText() {
+        const isPublicSwitch = document.getElementById('isPublicSwitch');
+        const visibilityLabel = document.getElementById('visibilityLabel');
+        const visibilityIcon = document.getElementById('visibilityIcon');
 
-<div class="form-check form-switch mb-4">
-    <input asp-for="IsPublic" class="form-check-input" />
-    <label asp-for="IsPublic" class="form-check-label"></label>
-</div>
+        if (isPublicSwitch.checked) {
+            visibilityLabel.textContent = 'Visible to everyone';
+            visibilityIcon.className = 'bi bi-eye me-1';
+        } else {
+            visibilityLabel.textContent = 'Visible only to you';
+            visibilityIcon.className = 'bi bi-eye-slash me-1';
+        }
+    }
+</script>
