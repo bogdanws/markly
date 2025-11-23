@@ -1,0 +1,46 @@
+@model HomeIndexViewModel
+
+@if (Model.HasBookmarks)
+{
+    <div class="masonry-grid">
+        @foreach (var bookmark in Model.Bookmarks)
+        {
+            <partial name="_BookmarkCard" model="bookmark" />
+        }
+    </div>
+}
+else
+{
+    <div class="bookmark-empty-state text-center p-5 border rounded-4">
+        <h3 class="h5 mb-3">No bookmarks yet</h3>
+        <p class="text-muted mb-4">Be the first to add something interesting for the community.</p>
+        <a asp-controller="Bookmarks" asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Add Bookmark
+        </a>
+    </div>
+}
+
+@if (Model.ShowPagination)
+{
+    <nav class="bookmark-pagination mt-5" aria-label="Bookmark pagination">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(Model.PageNumber == 1 ? "disabled" : string.Empty)">
+                <a class="page-link" asp-controller="Home" asp-action="Index"
+                   asp-route-filter="@Model.ActiveFilter" asp-route-page="@(Model.PageNumber - 1)">
+                    Previous
+                </a>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">
+                    Page @Model.PageNumber of @Model.TotalPages
+                </span>
+            </li>
+            <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : string.Empty)">
+                <a class="page-link" asp-controller="Home" asp-action="Index"
+                   asp-route-filter="@Model.ActiveFilter" asp-route-page="@(Model.PageNumber + 1)">
+                    Next
+                </a>
+            </li>
+        </ul>
+    </nav>
+}

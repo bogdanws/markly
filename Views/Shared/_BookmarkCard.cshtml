@@ -1,0 +1,39 @@
+@model BookmarkListItemViewModel
+
+<div class="col">
+    <article class="bookmark-card position-relative">
+        @if (!string.IsNullOrWhiteSpace(Model.MediaImageUrl))
+        {
+            <div class="bookmark-card__media">
+                <img src="@Model.MediaImageUrl" alt="@Model.Title" loading="lazy" />
+            </div>
+        }
+        <div class="bookmark-card__body">
+            <a asp-controller="Bookmarks" asp-action="Details" asp-route-id="@Model.Id" class="bookmark-card__title stretched-link">
+                @Model.Title
+            </a>
+            <p class="bookmark-card__description text-muted">
+                @Model.Description
+            </p>
+            @if (!string.IsNullOrWhiteSpace(Model.MediaTextPreview))
+            {
+                <p class="bookmark-card__text-preview">
+                    @Model.MediaTextPreview
+                </p>
+            }
+        </div>
+        <div class="bookmark-card__meta">
+            <div>
+                <small class="text-muted">By @Model.AuthorName</small>
+                <div class="text-muted small">
+                    @Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")
+                </div>
+            </div>
+            <div class="bookmark-card__stats">
+                <span>
+                    <i class="bi bi-heart-fill text-danger me-1"></i>@Model.VoteCount
+                </span>
+            </div>
+        </div>
+    </article>
+</div>

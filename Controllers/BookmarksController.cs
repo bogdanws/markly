@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using markly.Data;
 using markly.Data.Entities;
+using markly.Helpers;
 using markly.Models;
 using markly.ViewModels;
 
@@ -241,25 +242,9 @@ public class BookmarksController : Controller
             CreatedAt = bookmark.CreatedAt,
             UpdatedAt = bookmark.UpdatedAt,
             IsPublic = bookmark.IsPublic,
-            AuthorName = GetAuthorName(bookmark.User),
+            AuthorName = UserHelper.GetAuthorName(bookmark.User),
             CanEdit = IsOwner(bookmark, currentUserId),
             MediaContent = media
         };
-    }
-
-    private static string GetAuthorName(ApplicationUser? user)
-    {
-        if (user == null)
-        {
-            return "Unknown";
-        }
-
-        var fullName = $"{user.FirstName} {user.LastName}".Trim();
-        if (!string.IsNullOrWhiteSpace(fullName))
-        {
-            return fullName;
-        }
-
-        return user.UserName ?? "Unknown";
     }
 }

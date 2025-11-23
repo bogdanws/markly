@@ -73,6 +73,7 @@ public class BookmarkMediaContent
             return $"https://player.vimeo.com/video/{vimeo.Groups[1].Value}";
         }
 
-        return url;
+        // Return null for unrecognized patterns to prevent XSS/clickjacking attacks
+        return null;
     }
 }

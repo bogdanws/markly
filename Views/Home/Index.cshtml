@@ -1,97 +1,155 @@
+@model HomeIndexViewModel
 @{
     ViewData["Title"] = "Home";
+    var isRecent = Model.ActiveFilter == "recent";
+    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
 }
 
-<!-- Hero Section -->
-<section class="hero-section fade-in" style="position: relative; overflow: hidden;">
-    <!-- CSS Background Decoration -->
-    <div class="hero-bg-decoration"></div>
+@if (!isAuthenticated)
+{
+    @* Hero Section *@
+    <section class="hero-section fade-in" style="position: relative; overflow: hidden;">
+        <!-- CSS Background Decoration -->
+        <div class="hero-bg-decoration"></div>
 
-    <div class="container" style="position: relative; z-index: 1;">
-        <div class="row align-items-center">
-            <div class="col-lg-6 mb-5 mb-lg-0">
-                <h1 class="fw-bold mb-4">
-                    Save and organize your favorite content
-                </h1>
-                <p class="lead mb-4">
-                    Markly helps you collect, categorize, and share bookmarks with the community.
-                    Discover new content and keep everything organized in one place.
-                </p>
-                <div class="d-flex gap-3 flex-wrap">
-                    <a asp-controller="Account" asp-action="Register" class="btn btn-primary btn-lg hover-lift">
-                        Get Started Free
-                    </a>
-                    <a asp-controller="Bookmarks" asp-action="Browse" class="btn btn-outline-primary btn-lg hover-lift">
-                        Explore Bookmarks
-                    </a>
-                </div>
-            </div>
-            <div class="col-lg-6">
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Features Section -->
-<section class="py-5">
-    <div class="container" style="max-width: 1200px;">
-        <div class="row g-4">
-            <!-- Feature 1 -->
-            <div class="col-md-6 col-lg-3">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="bi bi-collection"></i>
+        <div class="container" style="position: relative; z-index: 1;">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-5 mb-lg-0">
+                    <h1 class="fw-bold mb-4">
+                        Save and organize your favorite content
+                    </h1>
+                    <p class="lead mb-4">
+                        Markly helps you collect, categorize, and share bookmarks with the community.
+                        Discover new content and keep everything organized in one place.
+                    </p>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <a asp-controller="Account" asp-action="Register" class="btn btn-primary btn-lg hover-lift">
+                            Get Started Free
+                        </a>
+                        <a asp-controller="Bookmarks" asp-action="Browse" class="btn btn-outline-primary btn-lg hover-lift">
+                            Explore Bookmarks
+                        </a>
                     </div>
-                    <h5>Smart Categories</h5>
-                    <p>Organize bookmarks into custom categories. Keep them private or share with others.</p>
-                </div>
-            </div>
-
-            <!-- Feature 2 -->
-            <div class="col-md-6 col-lg-3">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="bi bi-search"></i>
-                    </div>
-                    <h5>Powerful Search</h5>
-                    <p>Find any bookmark instantly with advanced search and filtering capabilities.</p>
-                </div>
-            </div>
-
-            <!-- Feature 3 -->
-            <div class="col-md-6 col-lg-3">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="bi bi-heart"></i>
-                    </div>
-                    <h5>Vote & Comment</h5>
-                    <p>Engage with the community. Vote on bookmarks and share your thoughts.</p>
-                </div>
-            </div>
-
-            <!-- Feature 4 -->
-            <div class="col-md-6 col-lg-3">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="bi bi-stars"></i>
-                    </div>
-                    <h5>AI Suggestions</h5>
-                    <p>Get smart tag and category suggestions powered by artificial intelligence.</p>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- CTA Section -->
-<section class="cta-section">
-    <div class="container" style="max-width: 900px;">
-        <div class="cta-card">
-            <h2 class="fw-bold">Ready to Get Started?</h2>
-            <p class="mb-4">Join the community and start organizing your digital life today.</p>
-            <a asp-controller="Account" asp-action="Register" class="btn btn-light btn-lg hover-lift">
-                Create Free Account
+    @* Bookmark Feed Section (Public) *@
+    <section class="bookmark-feed-section py-5">
+        <div class="container">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                <div>
+                    <h2 class="h4 mb-1">Community bookmarks</h2>
+                    <p class="text-muted mb-0">Browse what the community is saving.</p>
+                </div>
+                <div class="btn-group filter-toggle" role="group" aria-label="Bookmark filter toggle">
+                    <a class="btn btn-outline-primary @(isRecent ? "active" : string.Empty)"
+                        asp-controller="Home" asp-action="Index" asp-route-filter="recent">
+                        Recent
+                    </a>
+                    <a class="btn btn-outline-primary @(!isRecent ? "active" : string.Empty)"
+                        asp-controller="Home" asp-action="Index" asp-route-filter="popular">
+                        Popular
+                    </a>
+                </div>
+            </div>
+
+            <partial name="_BookmarkGrid" model="Model" />
+        </div>
+    </section>
+
+    @* Features Section *@
+    <section class="py-5">
+        <div class="container" style="max-width: 1200px;">
+            <div class="row g-4">
+                <!-- Feature 1 -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-collection"></i>
+                        </div>
+                        <h5>Smart Categories</h5>
+                        <p>Organize bookmarks into custom categories. Keep them private or share with others.</p>
+                    </div>
+                </div>
+
+                @* Feature 2 *@
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <h5>Powerful Search</h5>
+                        <p>Find any bookmark instantly with advanced search and filtering capabilities.</p>
+                    </div>
+                </div>
+
+                @* Feature 3 *@
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-heart"></i>
+                        </div>
+                        <h5>Vote & Comment</h5>
+                        <p>Engage with the community. Vote on bookmarks and share your thoughts.</p>
+                    </div>
+                </div>
+
+                @* Feature 4 *@
+                <div class="col-md-6 col-lg-3">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-stars"></i>
+                        </div>
+                        <h5>AI Suggestions</h5>
+                        <p>Get smart tag and category suggestions powered by artificial intelligence.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @* CTA Section *@
+    <section class="cta-section">
+        <div class="container" style="max-width: 900px;">
+            <div class="cta-card">
+                <h2 class="fw-bold">Ready to Get Started?</h2>
+                <p class="mb-4">Join the community and start organizing your digital life today.</p>
+                <a asp-controller="Account" asp-action="Register" class="btn btn-light btn-lg hover-lift">
+                    Create Free Account
+                </a>
+            </div>
+        </div>
+    </section>
+}
+else
+{
+    @* Authenticated User Dashboard *@
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-end mb-5">
+            <div>
+                <h1 class="h3 fw-bold mb-2">Welcome back, @User.Identity?.Name!</h1>
+                <p class="text-muted mb-0">Here are the latest discoveries from the community.</p>
+            </div>
+            <a asp-controller="Bookmarks" asp-action="Create" class="btn btn-primary shadow-sm hover-lift">
+                <i class="bi bi-plus-lg me-2"></i>New Bookmark
             </a>
         </div>
+
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div class="btn-group shadow-sm" role="group">
+                <a asp-action="Index" asp-route-filter="recent" 
+                    class="btn @(isRecent ? "btn-primary" : "btn-light bg-white text-muted border") px-4">
+                    Recent
+                </a>
+                <a asp-action="Index" asp-route-filter="popular" 
+                    class="btn @(!isRecent ? "btn-primary" : "btn-light bg-white text-muted border") px-4">
+                    Popular
+                </a>
+            </div>
+        </div>
+
+        <partial name="_BookmarkGrid" model="Model" />
     </div>
-</section>
+}
