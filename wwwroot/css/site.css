@@ -583,7 +583,7 @@ p {
 }
 
 /* ===========================
-   Bookmark Feed
+   Bookmark Feed (Pinterest / Masonry Style)
    =========================== */
 
 .bookmark-feed-section {
@@ -603,11 +603,42 @@ p {
     border-color: var(--purple-primary);
 }
 
+/* Masonry Grid */
+.masonry-grid {
+    column-count: 1;
+    column-gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .masonry-grid {
+        column-count: 2;
+    }
+}
+
+@media (min-width: 1200px) {
+    .masonry-grid {
+        column-count: 3;
+    }
+}
+
+/* Fix items inside masonry */
+.masonry-grid > .col {
+    display: block;
+    width: 100%;
+    break-inside: avoid;
+    margin-bottom: 1.5rem;
+}
+
 .bookmark-card {
-    border: 1px solid var(--gray-200);
+    /* Remove h-100 so it shrinks to content */
+    height: auto !important;
+    
+    /* Pinterest Style: Clean, rounded, borderless */
+    border: none;
     border-radius: var(--radius-xl);
     background-color: #fff;
-    box-shadow: var(--shadow-sm);
+    /* Subtle shadow for separation */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -616,25 +647,30 @@ p {
 
 .bookmark-card:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-    border-color: var(--purple-light);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+    /* border-color: var(--purple-light); Removed border hover */
 }
 
 .bookmark-card__media {
     position: relative;
     width: 100%;
-    height: 180px;
+    /* Dynamic Height for Pinterest look */
+    height: auto; 
+    min-height: 40px;
     overflow: hidden;
     background: var(--gray-100);
 }
 
 .bookmark-card__media img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto; /* Preserve aspect ratio */
+    max-height: 450px; /* Limit max height for tall images */
+    object-fit: cover; /* Crop if max-height is hit */
+    display: block;
 }
 
 .bookmark-card__media--empty {
+    height: 120px; /* Fixed height only if empty */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -654,17 +690,18 @@ p {
 }
 
 .bookmark-card__body {
-    padding: 1.5rem;
+    padding: 1.25rem;
     flex-grow: 1;
 }
 
 .bookmark-card__title {
-    font-size: 1.125rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--gray-900);
     text-decoration: none;
     display: block;
     margin-bottom: 0.5rem;
+    line-height: 1.4;
 }
 
 .bookmark-card__title:hover {
@@ -672,12 +709,14 @@ p {
 }
 
 .bookmark-card__description {
-    font-size: 0.95rem;
-    min-height: 48px;
+    font-size: 0.9rem;
+    color: var(--gray-600);
+    margin-bottom: 0.75rem;
+    line-height: 1.5;
 }
 
 .bookmark-card__text-preview {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--gray-700);
     background-color: var(--gray-50);
     border-radius: var(--radius-md);
@@ -686,8 +725,7 @@ p {
 }
 
 .bookmark-card__meta {
-    padding: 1rem 1.5rem 1.25rem;
-    border-top: 1px solid var(--gray-200);
+    padding: 0.75rem 1.25rem 1rem;
     display: flex;
     align-items: center;
     justify-content: space-between;

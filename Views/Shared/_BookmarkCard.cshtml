@@ -1,24 +1,18 @@
 @model BookmarkListItemViewModel
 
 <div class="col">
-    <article class="bookmark-card h-100">
-        <div class="bookmark-card__media @(string.IsNullOrWhiteSpace(Model.MediaImageUrl) ? "bookmark-card__media--empty" : string.Empty)">
-            @if (!string.IsNullOrWhiteSpace(Model.MediaImageUrl))
-            {
+    <article class="bookmark-card position-relative">
+        @if (!string.IsNullOrWhiteSpace(Model.MediaImageUrl))
+        {
+            <div class="bookmark-card__media">
                 <img src="@Model.MediaImageUrl" alt="@Model.Title" loading="lazy" />
-            }
-            else
-            {
-                <div class="bookmark-card__placeholder">
-                    <i class="bi bi-bookmark-star"></i>
-                </div>
-            }
-        </div>
+            </div>
+        }
         <div class="bookmark-card__body">
-            <a asp-controller="Bookmarks" asp-action="Details" asp-route-id="@Model.Id" class="bookmark-card__title">
+            <a asp-controller="Bookmarks" asp-action="Details" asp-route-id="@Model.Id" class="bookmark-card__title stretched-link">
                 @Model.Title
             </a>
-            <p class="bookmark-card__description text-muted mb-2">
+            <p class="bookmark-card__description text-muted">
                 @Model.Description
             </p>
             @if (!string.IsNullOrWhiteSpace(Model.MediaTextPreview))
