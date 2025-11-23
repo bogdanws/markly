@@ -11,8 +11,9 @@ public class UserProfileViewModel
     public string? ProfilePictureUrl { get; set; }
     public DateTime JoinedDate { get; set; }
     
-    public IReadOnlyList<BookmarkListItemViewModel> PublicBookmarks { get; set; } = Array.Empty<BookmarkListItemViewModel>();
-    public IReadOnlyList<Category> PublicCategories { get; set; } = Array.Empty<Category>();
+    public IReadOnlyList<BookmarkListItemViewModel> Bookmarks { get; set; } = Array.Empty<BookmarkListItemViewModel>();
+    public IReadOnlyList<Category> Categories { get; set; } = Array.Empty<Category>();
+    public bool IsOwner { get; set; }
     
     public string FullName => $"{FirstName} {LastName}".Trim();
 }

@@ -35,8 +35,11 @@ public class ProfileController : Controller
             return NotFound();
         }
 
+        var isOwner = User.Identity?.IsAuthenticated == true && 
+                      string.Equals(User.Identity.Name, username, StringComparison.OrdinalIgnoreCase);
+
         var rawBookmarks = await _context.Bookmarks
-            .Where(b => b.UserId == user.Id && b.IsPublic)
+            .Where(b => b.UserId == user.Id && (b.IsPublic || isOwner))
             .Include(b => b.User)
             .Include(b => b.Votes)
             .OrderByDescending(b => b.CreatedAt)
@@ -49,7 +52,8 @@ public class ProfileController : Controller
                 UserName = b.User.UserName,
                 b.CreatedAt,
                 VoteCount = b.Votes.Count,
-                b.Content
+                b.Content,
+                b.IsPublic
             })
             .ToListAsync();
 
@@ -67,12 +71,13 @@ public class ProfileController : Controller
                 MediaImageUrl = media.ImageUrl,
                 MediaTextPreview = media.TextContent != null && media.TextContent.Length > 100 
                     ? media.TextContent.Substring(0, 100) + "..." 
-                    : media.TextContent
+                    : media.TextContent,
+                IsPrivate = !b.IsPublic
             };
         }).ToList();
 
         var categories = await _context.Categories
-            .Where(c => c.UserId == user.Id && c.IsPublic)
+            .Where(c => c.UserId == user.Id && (c.IsPublic || isOwner))
             .ToListAsync();
 
         var viewModel = new UserProfileViewModel
@@ -83,8 +88,9 @@ public class ProfileController : Controller
             Bio = user.Bio ?? "",
             ProfilePictureUrl = user.ProfilePictureUrl,
             JoinedDate = user.CreatedAt,
-            PublicBookmarks = bookmarks,
-            PublicCategories = categories
+            Bookmarks = bookmarks,
+            Categories = categories,
+            IsOwner = isOwner
         };
 
         return View(viewModel);

@@ -55,12 +55,12 @@
                     }
                 </div>
                 
-                @if (Model.PublicCategories.Any())
+                @if (Model.Categories.Any())
                 {
                     <div class="card-footer bg-white border-top p-4">
-                        <h6 class="fw-bold mb-3">Public Categories</h6>
+                        <h6 class="fw-bold mb-3">@(Model.IsOwner ? "Categories" : "Public Categories")</h6>
                         <div class="d-flex flex-wrap gap-2">
-                            @foreach (var category in Model.PublicCategories)
+                            @foreach (var category in Model.Categories)
                             {
                                 <span class="badge bg-light text-dark border fw-normal px-3 py-2">
                                     <i class="bi bi-folder2-open me-1 text-muted"></i> @category.Name
@@ -75,16 +75,16 @@
         @* Main Content: Bookmarks *@
         <div class="col-lg-8">
             <div class="d-flex align-items-center justify-content-between mb-4">
-                <h3 class="fw-bold mb-0">Public Bookmarks</h3>
+                <h3 class="fw-bold mb-0">@(Model.IsOwner ? "Bookmarks" : "Public Bookmarks")</h3>
                 <span class="badge bg-light text-secondary rounded-pill px-3 py-2">
-                    @Model.PublicBookmarks.Count items
+                    @Model.Bookmarks.Count items
                 </span>
             </div>
 
-            @if (Model.PublicBookmarks.Any())
+            @if (Model.Bookmarks.Any())
             {
                 <div class="masonry-grid">
-                    @foreach (var bookmark in Model.PublicBookmarks)
+                    @foreach (var bookmark in Model.Bookmarks)
                     {
                          <partial name="_BookmarkCard" model="bookmark" />
                     }
@@ -96,8 +96,8 @@
                     <div class="mb-3">
                         <i class="bi bi-journal-bookmark" style="font-size: 3rem; opacity: 0.5;"></i>
                     </div>
-                    <h5 class="fw-normal">No public bookmarks yet</h5>
-                    <p class="small">This user hasn't shared any bookmarks publicly.</p>
+                    <h5 class="fw-normal">No bookmarks yet</h5>
+                    <p class="small">This user hasn't shared any bookmarks.</p>
                 </div>
             }
         </div>
