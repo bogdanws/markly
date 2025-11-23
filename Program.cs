@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using markly.Data;
 using markly.Data.Entities;
+using markly.Services.Interfaces;
+using markly.Services.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +35,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 
 // AutoMapper configuration
 builder.Services.AddAutoMapper(typeof(Program));
+
+// Service Registration
+builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 
 // Cookie configuration for authentication
 builder.Services.ConfigureApplicationCookie(options =>

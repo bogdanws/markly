@@ -112,3 +112,6 @@ Desktop.ini
 *.env
 *.env.*
 secrets.json
+
+# Uploaded images
+wwwroot/images/profiles/
