@@ -1,0 +1,50 @@
+@model markly.ViewModels.BookmarkFormViewModel
+
+@{
+    var isEdit = ViewData["Action"] as string == "Edit";
+    var title = isEdit ? "Edit Bookmark" : "Create Bookmark";
+    var description = isEdit ? "Update the content and media for this bookmark." : "Save a resource with optional notes, images, or videos.";
+    var formAction = isEdit ? "Edit" : "Create";
+    var btnIcon = isEdit ? "bi-save" : "bi-check-circle";
+    var btnText = isEdit ? "Save changes" : "Save bookmark";
+    
+    // Determine cancel link destination
+    var cancelController = isEdit ? "Bookmarks" : "Home";
+    var cancelAction = isEdit ? "Details" : "Index";
+    var cancelRouteId = isEdit ? new { id = Model.Id } : null;
+}
+
+<section class="container py-5" style="max-width: 720px;">
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">@title</h1>
+                    <p class="text-muted mb-0">@description</p>
+                </div>
+            </div>
+
+            <form asp-action="@formAction" method="post" novalidate>
+                <partial name="_BookmarkForm" model="Model" />
+                <div class="d-flex gap-3 align-items-center">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi @btnIcon me-1"></i> @btnText
+                    </button>
+                    
+                    @if (isEdit)
+                    {
+                        <a asp-action="@cancelAction" asp-route-id="@Model.Id" class="btn btn-outline-secondary btn-sm">
+                            Cancel
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="@cancelController" asp-action="@cancelAction" class="btn btn-outline-secondary btn-sm">
+                            Cancel
+                        </a>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
+</section>

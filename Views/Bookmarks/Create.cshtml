@@ -1,0 +1,12 @@
+@model markly.ViewModels.BookmarkFormViewModel
+
+@{
+    ViewData["Title"] = "Create Bookmark";
+    ViewData["Action"] = "Create";
+}
+
+<partial name="_BookmarkEditor" model="Model" />
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,100 @@
+@model BookmarkDetailsViewModel
+@using System.Text.Encodings.Web
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<section class="container py-5" style="max-width: 860px;">
+    <div class="mb-3">
+        <a asp-controller="Home" asp-action="Index" class="text-decoration-none text-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Feed
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between flex-wrap gap-3 mb-4 border-bottom pb-4">
+                <div>
+                    <div class="mb-2">
+                        <span class="badge bg-@((Model.IsPublic ? "success" : "secondary"))">
+                            @(Model.IsPublic ? "Public" : "Private")
+                        </span>
+                    </div>
+                    <h1 class="h3 mb-2">@Model.Title</h1>
+                    <p class="text-muted fs-5 mb-2">@Model.Description</p>
+                    <small class="text-muted d-block">
+                        <i class="bi bi-person-circle me-1"></i> @Model.AuthorName 
+                        <span class="mx-2">•</span> 
+                        <i class="bi bi-clock me-1"></i> @Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, HH:mm")
+                        @if (Model.UpdatedAt.HasValue)
+                        {
+                            <span class="ms-2 fst-italic">(Updated @Model.UpdatedAt.Value.ToLocalTime().ToString("dd MMM yyyy, HH:mm"))</span>
+                        }
+                    </small>
+                </div>
+                
+                @if (Model.CanEdit)
+                {
+                    <div class="d-flex gap-2 align-items-start">
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-pencil me-1"></i> Edit
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-trash me-1"></i> Delete
+                        </a>
+                    </div>
+                }
+            </div>
+
+            <div class="bookmark-media">
+                @if (!string.IsNullOrWhiteSpace(Model.MediaContent.TextContent))
+                {
+                    var encoded = HtmlEncoder.Default.Encode(Model.MediaContent.TextContent);
+                    var formatted = encoded.Replace("\n", "<br />");
+                    <div class="mb-4">
+                        <h5 class="fw-semibold text-secondary mb-3">
+                            <i class="bi bi-journal-text me-2"></i>Notes
+                        </h5>
+                        <div class="p-3 bg-light rounded border border-light-subtle">
+                            @Html.Raw(formatted)
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.MediaContent.ImageUrl))
+                {
+                    <div class="mb-4">
+                        <h5 class="fw-semibold text-secondary mb-3">
+                            <i class="bi bi-image me-2"></i>Image
+                        </h5>
+                        <img src="@Model.MediaContent.ImageUrl" alt="@Model.Title" class="img-fluid rounded shadow-sm" style="max-height: 500px; object-fit: contain;" />
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.MediaContent.VideoEmbedUrl))
+                {
+                    <div class="mb-4">
+                        <h5 class="fw-semibold text-secondary mb-3">
+                            <i class="bi bi-play-btn me-2"></i>Video
+                        </h5>
+                        <div class="ratio ratio-16x9 rounded overflow-hidden shadow-sm">
+                            <iframe src="@Model.MediaContent.VideoEmbedUrl" title="Bookmark video player" allowfullscreen
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                        </div>
+                    </div>
+                }
+
+                @if (!Model.MediaContent.HasAnyMedia)
+                {
+                    <div class="alert alert-light text-muted border d-flex align-items-center justify-content-center py-5" role="alert">
+                        <div class="text-center">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            <span>No additional media attached.</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
