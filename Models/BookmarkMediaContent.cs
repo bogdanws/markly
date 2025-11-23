@@ -67,7 +67,7 @@ public class BookmarkMediaContent
             return $"https://www.youtube.com/embed/{youtube.Groups[1].Value}";
         }
 
-        var vimeo = Regex.Match(url, @"vimeo\.com/(?:video/)?(\d+)");
+        var vimeo = Regex.Match(url, @"vimeo\.com/(?:.*/)?(\d+)");
         if (vimeo.Success)
         {
             return $"https://player.vimeo.com/video/{vimeo.Groups[1].Value}";
