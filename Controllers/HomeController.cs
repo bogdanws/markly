@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using markly.Data;
 using markly.Data.Entities;
+using markly.Helpers;
 using markly.Models;
 using markly.ViewModels;
 
@@ -60,7 +61,7 @@ public class HomeController : Controller
                 Id = b.Id,
                 Title = b.Title,
                 Description = b.Description,
-                AuthorName = GetAuthorName(item.User),
+                AuthorName = UserHelper.GetAuthorName(item.User),
                 CreatedAt = b.CreatedAt,
                 VoteCount = item.VoteCount,
                 MediaImageUrl = media.ImageUrl,
@@ -98,22 +99,6 @@ public class HomeController : Controller
         }
 
         return "recent";
-    }
-
-    private static string GetAuthorName(ApplicationUser? user)
-    {
-        if (user == null)
-        {
-            return "Unknown";
-        }
-
-        var fullName = $"{user.FirstName} {user.LastName}".Trim();
-        if (!string.IsNullOrWhiteSpace(fullName))
-        {
-            return fullName;
-        }
-
-        return user.UserName ?? "Unknown";
     }
 
     private static string? BuildTextPreview(string? textContent)
