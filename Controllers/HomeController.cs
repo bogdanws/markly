@@ -34,30 +34,35 @@ public class HomeController : Controller
         var totalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)PageSize));
         pageNumber = Math.Min(pageNumber, totalPages);
 
-        bookmarksQuery = bookmarksQuery
-            .Include(b => b.User)
-            .Include(b => b.Votes);
+        var projectedQuery = bookmarksQuery
+            .Select(b => new
+            {
+                Bookmark = b,
+                User = b.User,
+                VoteCount = b.Votes.Count
+            });
 
-        bookmarksQuery = normalizedFilter == "popular"
-            ? bookmarksQuery.OrderByDescending(b => b.Votes.Count).ThenByDescending(b => b.CreatedAt)
-            : bookmarksQuery.OrderByDescending(b => b.CreatedAt);
+        projectedQuery = normalizedFilter == "popular"
+            ? projectedQuery.OrderByDescending(x => x.VoteCount).ThenByDescending(x => x.Bookmark.CreatedAt)
+            : projectedQuery.OrderByDescending(x => x.Bookmark.CreatedAt);
 
-        var bookmarks = await bookmarksQuery
+        var bookmarks = await projectedQuery
             .Skip((pageNumber - 1) * PageSize)
             .Take(PageSize)
             .ToListAsync();
 
-        var bookmarkItems = bookmarks.Select(b =>
+        var bookmarkItems = bookmarks.Select(item =>
         {
+            var b = item.Bookmark;
             var media = BookmarkMediaContent.FromJson(b.Content);
             return new BookmarkListItemViewModel
             {
                 Id = b.Id,
                 Title = b.Title,
                 Description = b.Description,
-                AuthorName = GetAuthorName(b.User),
+                AuthorName = GetAuthorName(item.User),
                 CreatedAt = b.CreatedAt,
-                VoteCount = b.Votes?.Count ?? 0,
+                VoteCount = item.VoteCount,
                 MediaImageUrl = media.ImageUrl,
                 MediaTextPreview = BuildTextPreview(media.TextContent)
             };
