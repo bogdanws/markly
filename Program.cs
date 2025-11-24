@@ -80,7 +80,12 @@ app.MapGet("/antiforgery/token", (IAntiforgery forgeryService, HttpContext conte
 {
     var tokens = forgeryService.GetAndStoreTokens(context);
     context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!,
-        new CookieOptions { HttpOnly = false });
+        new CookieOptions
+        {
+            HttpOnly = false,
+            SameSite = SameSiteMode.Strict,
+            Secure = !app.Environment.IsDevelopment()
+        });
     return Results.Ok();
 }).RequireAuthorization();
 

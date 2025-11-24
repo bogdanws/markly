@@ -17,8 +17,8 @@
         const toggle = document.getElementById('isPublicSwitch');
         const label = document.getElementById('visibilityLabel');
         const icon = document.getElementById('visibilityIcon');
-        const publicText = '@(ViewData["PublicText"] ?? "Visible to everyone")';
-        const privateText = '@(ViewData["PrivateText"] ?? "Visible only to you")';
+        const publicText = @Html.Raw(Json.Serialize(ViewData["PublicText"] ?? "Visible to everyone"));
+        const privateText = @Html.Raw(Json.Serialize(ViewData["PrivateText"] ?? "Visible only to you"));
 
         function updateVisibilityText() {
             if (toggle.checked) {

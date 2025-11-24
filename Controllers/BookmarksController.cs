@@ -67,23 +67,7 @@ public class BookmarksController : Controller
         await _context.SaveChangesAsync(); // Save to get ID
 
         // Add Categories
-        if (model.SelectedCategoryIds.Any())
-        {
-            var validCategoryIds = await _context.Categories
-                .Where(c => c.UserId == user.Id && model.SelectedCategoryIds.Contains(c.Id))
-                .Select(c => c.Id)
-                .ToListAsync();
-
-            foreach (var catId in validCategoryIds)
-            {
-                _context.BookmarkCategories.Add(new BookmarkCategory
-                {
-                    BookmarkId = bookmark.Id,
-                    CategoryId = catId
-                });
-            }
-            await _context.SaveChangesAsync();
-        }
+        await UpdateBookmarkCategories(bookmark, model.SelectedCategoryIds, user.Id);
 
         TempData["SuccessMessage"] = "Bookmark created successfully.";
         return RedirectToAction(nameof(Details), new { id = bookmark.Id });
@@ -159,24 +143,7 @@ public class BookmarksController : Controller
 
         // Update Categories
         _context.BookmarkCategories.RemoveRange(bookmark.BookmarkCategories);
-        if (model.SelectedCategoryIds.Any())
-        {
-            var validCategoryIds = await _context.Categories
-                .Where(c => c.UserId == user.Id && model.SelectedCategoryIds.Contains(c.Id))
-                .Select(c => c.Id)
-                .ToListAsync();
-
-            foreach (var catId in validCategoryIds)
-            {
-                _context.BookmarkCategories.Add(new BookmarkCategory
-                {
-                    BookmarkId = bookmark.Id,
-                    CategoryId = catId
-                });
-            }
-        }
-
-        await _context.SaveChangesAsync();
+        await UpdateBookmarkCategories(bookmark, model.SelectedCategoryIds, user.Id);
 
         TempData["SuccessMessage"] = "Bookmark updated successfully.";
         return RedirectToAction(nameof(Details), new { id = bookmark.Id });
@@ -315,5 +282,30 @@ public class BookmarksController : Controller
             CanEdit = IsOwner(bookmark, currentUserId),
             MediaContent = media
         };
+    }
+
+    private async Task UpdateBookmarkCategories(Bookmark bookmark, List<int> categoryIds, string userId)
+    {
+        if (!categoryIds.Any())
+        {
+            await _context.SaveChangesAsync();
+            return;
+        }
+
+        var validCategoryIds = await _context.Categories
+            .Where(c => c.UserId == userId && categoryIds.Contains(c.Id))
+            .Select(c => c.Id)
+            .ToListAsync();
+
+        foreach (var catId in validCategoryIds)
+        {
+            _context.BookmarkCategories.Add(new BookmarkCategory
+            {
+                BookmarkId = bookmark.Id,
+                CategoryId = catId
+            });
+        }
+
+        await _context.SaveChangesAsync();
     }
 }

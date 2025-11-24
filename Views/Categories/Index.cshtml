@@ -134,8 +134,8 @@
                 let visibleCount = 0;
 
                 categoryCards.forEach(card => {
-                    const name = card.getAttribute('data-category-name');
-                    const desc = card.getAttribute('data-category-desc');
+                    const name = card.getAttribute('data-category-name') || '';
+                    const desc = card.getAttribute('data-category-desc') || '';
                     const matchesSearch = name.includes(searchTerm) || desc.includes(searchTerm);
 
                     if (matchesSearch) {

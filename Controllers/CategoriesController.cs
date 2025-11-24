@@ -129,9 +129,9 @@ public class CategoriesController : Controller
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Challenge();
 
-        // Check for duplicate name
-        model.Name = model.Name.Trim();
-        if (await _context.Categories.AnyAsync(c => c.UserId == user.Id && c.Name.ToLower() == model.Name.ToLower()))
+        // Validate and normalize name (trim and collapse multiple spaces)
+        model.Name = NormalizeName(model.Name);
+        if (!await ValidateCategoryName(model.Name, user.Id, null))
         {
             ModelState.AddModelError("Name", "You already have a category with this name.");
             return View(model);
@@ -182,10 +182,10 @@ public class CategoriesController : Controller
         var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == model.Id && c.UserId == user.Id);
         if (category == null) return NotFound();
 
-        // Check duplicate name if changed
-        model.Name = model.Name.Trim();
-        if (category.Name.ToLower() != model.Name.ToLower() && 
-            await _context.Categories.AnyAsync(c => c.UserId == user.Id && c.Name.ToLower() == model.Name.ToLower()))
+        // Validate and normalize name (trim and collapse multiple spaces)
+        model.Name = NormalizeName(model.Name);
+        if (category.Name.ToLower() != model.Name.ToLower() &&
+            !await ValidateCategoryName(model.Name, user.Id, model.Id))
         {
             ModelState.AddModelError("Name", "You already have a category with this name.");
             return View(model);
@@ -244,12 +244,13 @@ public class CategoriesController : Controller
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Unauthorized();
 
+        // Validate name
         if (string.IsNullOrWhiteSpace(model.Name))
         {
             return BadRequest(new { success = false, message = "Category name is required." });
         }
 
-        model.Name = model.Name.Trim();
+        model.Name = NormalizeName(model.Name);
 
         if (model.Name.Length > 50)
         {
@@ -257,7 +258,7 @@ public class CategoriesController : Controller
         }
 
         // Check for duplicate name
-        if (await _context.Categories.AnyAsync(c => c.UserId == user.Id && c.Name.ToLower() == model.Name.ToLower()))
+        if (!await ValidateCategoryName(model.Name, user.Id, null))
         {
             return BadRequest(new { success = false, message = "Category already exists." });
         }
@@ -274,5 +275,22 @@ public class CategoriesController : Controller
         await _context.SaveChangesAsync();
 
         return Ok(new { success = true, category = new { id = category.Id, name = category.Name } });
+    }
+
+    private static string NormalizeName(string name)
+    {
+        return System.Text.RegularExpressions.Regex.Replace(name.Trim(), @"\s+", " ");
+    }
+
+    private async Task<bool> ValidateCategoryName(string name, string userId, int? categoryIdToExclude)
+    {
+        var normalizedName = name.ToLower();
+        var existingCategories = await _context.Categories
+            .Where(c => c.UserId == userId && (categoryIdToExclude == null || c.Id != categoryIdToExclude))
+            .Select(c => c.Name)
+            .ToListAsync();
+
+        return !existingCategories.Any(c =>
+            System.Text.RegularExpressions.Regex.Replace(c.ToLower(), @"\s+", " ") == normalizedName);
     }
 }

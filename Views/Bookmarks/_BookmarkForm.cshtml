@@ -188,8 +188,8 @@
                     errorMsg.textContent = data.message || 'Failed to create category.';
                 }
             } catch (e) {
-                console.error(e);
-                errorMsg.textContent = 'An error occurred.';
+                console.error('Error creating category:', e);
+                errorMsg.textContent = 'Failed to create category. Please try again.';
             } finally {
                 submitBtn.disabled = false;
             }
