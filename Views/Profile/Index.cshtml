@@ -62,9 +62,9 @@
                         <div class="d-flex flex-wrap gap-2">
                             @foreach (var category in Model.Categories)
                             {
-                                <span class="badge bg-light text-dark border fw-normal px-3 py-2">
+                                <a asp-controller="Categories" asp-action="Details" asp-route-id="@category.Id" class="badge bg-light text-dark border fw-normal px-3 py-2 text-decoration-none">
                                     <i class="bi bi-folder2-open me-1 text-muted"></i> @category.Name
-                                </span>
+                                </a>
                             }
                         </div>
                     </div>

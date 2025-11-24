@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace markly.ViewModels;
 
@@ -28,4 +29,10 @@ public class BookmarkFormViewModel
 
     [Display(Name = "Make bookmark public")]
     public bool IsPublic { get; set; } = true;
+
+    [Display(Name = "Categories")]
+    public List<int> SelectedCategoryIds { get; set; } = new List<int>();
+
+    [ValidateNever]
+    public IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> AvailableCategories { get; set; } = new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
 }

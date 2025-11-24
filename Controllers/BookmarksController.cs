@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using markly.Data;
 using markly.Data.Entities;
@@ -28,9 +29,14 @@ public class BookmarksController : Controller
 
     [Authorize]
     [HttpGet]
-    public IActionResult Create()
+    public async Task<IActionResult> Create()
     {
-        return View(new BookmarkFormViewModel());
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Challenge();
+
+        var model = new BookmarkFormViewModel();
+        await LoadCategories(model, user.Id);
+        return View(model);
     }
 
     [Authorize]
@@ -38,15 +44,13 @@ public class BookmarksController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(BookmarkFormViewModel model)
     {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Challenge();
+
         if (!ModelState.IsValid)
         {
+            await LoadCategories(model, user.Id);
             return View(model);
-        }
-
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-        {
-            return Challenge();
         }
 
         var bookmark = new Bookmark
@@ -60,7 +64,26 @@ public class BookmarksController : Controller
         };
 
         _context.Bookmarks.Add(bookmark);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(); // Save to get ID
+
+        // Add Categories
+        if (model.SelectedCategoryIds.Any())
+        {
+            var validCategoryIds = await _context.Categories
+                .Where(c => c.UserId == user.Id && model.SelectedCategoryIds.Contains(c.Id))
+                .Select(c => c.Id)
+                .ToListAsync();
+
+            foreach (var catId in validCategoryIds)
+            {
+                _context.BookmarkCategories.Add(new BookmarkCategory
+                {
+                    BookmarkId = bookmark.Id,
+                    CategoryId = catId
+                });
+            }
+            await _context.SaveChangesAsync();
+        }
 
         TempData["SuccessMessage"] = "Bookmark created successfully.";
         return RedirectToAction(nameof(Details), new { id = bookmark.Id });
@@ -71,6 +94,7 @@ public class BookmarksController : Controller
     public async Task<IActionResult> Edit(int id)
     {
         var bookmark = await _context.Bookmarks
+            .Include(b => b.BookmarkCategories)
             .AsNoTracking()
             .FirstOrDefaultAsync(b => b.Id == id);
 
@@ -87,6 +111,9 @@ public class BookmarksController : Controller
 
         var media = BookmarkMediaContent.FromJson(bookmark.Content);
         var model = BuildFormViewModel(bookmark, media);
+        
+        // Load categories
+        await LoadCategories(model, currentUserId!);
 
         return View(model);
     }
@@ -101,19 +128,25 @@ public class BookmarksController : Controller
             return BadRequest();
         }
 
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Challenge();
+
         if (!ModelState.IsValid)
         {
+            await LoadCategories(model, user.Id);
             return View(model);
         }
 
-        var bookmark = await _context.Bookmarks.FirstOrDefaultAsync(b => b.Id == id);
+        var bookmark = await _context.Bookmarks
+            .Include(b => b.BookmarkCategories)
+            .FirstOrDefaultAsync(b => b.Id == id);
+
         if (bookmark == null)
         {
             return NotFound();
         }
 
-        var currentUserId = _userManager.GetUserId(User);
-        if (!IsOwner(bookmark, currentUserId))
+        if (!IsOwner(bookmark, user.Id))
         {
             return Forbid();
         }
@@ -123,6 +156,25 @@ public class BookmarksController : Controller
         bookmark.IsPublic = model.IsPublic;
         bookmark.Content = BuildMediaContent(model).ToJson();
         bookmark.UpdatedAt = DateTime.UtcNow;
+
+        // Update Categories
+        _context.BookmarkCategories.RemoveRange(bookmark.BookmarkCategories);
+        if (model.SelectedCategoryIds.Any())
+        {
+            var validCategoryIds = await _context.Categories
+                .Where(c => c.UserId == user.Id && model.SelectedCategoryIds.Contains(c.Id))
+                .Select(c => c.Id)
+                .ToListAsync();
+
+            foreach (var catId in validCategoryIds)
+            {
+                _context.BookmarkCategories.Add(new BookmarkCategory
+                {
+                    BookmarkId = bookmark.Id,
+                    CategoryId = catId
+                });
+            }
+        }
 
         await _context.SaveChangesAsync();
 
@@ -202,6 +254,22 @@ public class BookmarksController : Controller
         return View(model);
     }
 
+    private async Task LoadCategories(BookmarkFormViewModel model, string userId)
+    {
+        var categories = await _context.Categories
+            .Where(c => c.UserId == userId)
+            .OrderBy(c => c.Name)
+            .Select(c => new { c.Id, c.Name })
+            .ToListAsync();
+
+        model.AvailableCategories = categories.Select(c => new SelectListItem
+        {
+            Value = c.Id.ToString(),
+            Text = c.Name,
+            Selected = model.SelectedCategoryIds.Contains(c.Id)
+        }).ToList();
+    }
+
     private static bool IsOwner(Bookmark bookmark, string? userId)
     {
         return !string.IsNullOrEmpty(userId) && bookmark.UserId == userId;
@@ -227,7 +295,8 @@ public class BookmarksController : Controller
             IsPublic = bookmark.IsPublic,
             TextContent = media.TextContent,
             ImageUrl = media.ImageUrl,
-            VideoUrl = media.VideoUrl
+            VideoUrl = media.VideoUrl,
+            SelectedCategoryIds = bookmark.BookmarkCategories.Select(bc => bc.CategoryId).ToList()
         };
     }
 
