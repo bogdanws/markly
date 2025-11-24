@@ -131,9 +131,10 @@ public class CategoriesController : Controller
 
         // Validate and normalize name (trim and collapse multiple spaces)
         model.Name = NormalizeName(model.Name);
-        if (!await ValidateCategoryName(model.Name, user.Id, null))
+        var validationError = await ValidateCategoryName(model.Name, user.Id, null);
+        if (validationError != null)
         {
-            ModelState.AddModelError("Name", "You already have a category with this name.");
+            ModelState.AddModelError("Name", validationError);
             return View(model);
         }
 
@@ -184,11 +185,14 @@ public class CategoriesController : Controller
 
         // Validate and normalize name (trim and collapse multiple spaces)
         model.Name = NormalizeName(model.Name);
-        if (category.Name.ToLower() != model.Name.ToLower() &&
-            !await ValidateCategoryName(model.Name, user.Id, model.Id))
+        if (category.Name.ToLower() != model.Name.ToLower())
         {
-            ModelState.AddModelError("Name", "You already have a category with this name.");
-            return View(model);
+            var validationError = await ValidateCategoryName(model.Name, user.Id, model.Id);
+            if (validationError != null)
+            {
+                ModelState.AddModelError("Name", validationError);
+                return View(model);
+            }
         }
 
         category.Name = model.Name;
@@ -244,28 +248,15 @@ public class CategoriesController : Controller
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Unauthorized();
 
-        // Validate name
-        if (string.IsNullOrWhiteSpace(model.Name))
+        var validationError = await ValidateCategoryName(model.Name, user.Id, null);
+        if (validationError != null)
         {
-            return BadRequest(new { success = false, message = "Category name is required." });
-        }
-
-        model.Name = NormalizeName(model.Name);
-
-        if (model.Name.Length > 50)
-        {
-            return BadRequest(new { success = false, message = "Category name is too long." });
-        }
-
-        // Check for duplicate name
-        if (!await ValidateCategoryName(model.Name, user.Id, null))
-        {
-            return BadRequest(new { success = false, message = "Category already exists." });
+            return BadRequest(new { success = false, message = validationError });
         }
 
         var category = new Category
         {
-            Name = model.Name,
+            Name = NormalizeName(model.Name),
             IsPublic = model.IsPublic,
             UserId = user.Id,
             CreatedAt = DateTime.UtcNow
@@ -282,15 +273,36 @@ public class CategoriesController : Controller
         return System.Text.RegularExpressions.Regex.Replace(name.Trim(), @"\s+", " ");
     }
 
-    private async Task<bool> ValidateCategoryName(string name, string userId, int? categoryIdToExclude)
+    private async Task<string?> ValidateCategoryName(string? name, string userId, int? categoryIdToExclude)
     {
-        var normalizedName = name.ToLower();
+        // Check if name is null/whitespace
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return "Category name is required.";
+        }
+
+        // Normalize the name
+        var normalizedName = NormalizeName(name);
+
+        // Check length
+        if (normalizedName.Length > 50)
+        {
+            return "Category name is too long.";
+        }
+
+        // Check for duplicate
+        var normalizedNameLower = normalizedName.ToLower();
         var existingCategories = await _context.Categories
             .Where(c => c.UserId == userId && (categoryIdToExclude == null || c.Id != categoryIdToExclude))
             .Select(c => c.Name)
             .ToListAsync();
 
-        return !existingCategories.Any(c =>
-            System.Text.RegularExpressions.Regex.Replace(c.ToLower(), @"\s+", " ") == normalizedName);
+        if (existingCategories.Any(c =>
+            System.Text.RegularExpressions.Regex.Replace(c.ToLower(), @"\s+", " ") == normalizedNameLower))
+        {
+            return "Category already exists.";
+        }
+
+        return null;
     }
 }
