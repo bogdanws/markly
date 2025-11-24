@@ -12,7 +12,7 @@ public class EditProfileViewModel
     public string? LastName { get; set; }
 
     [Display(Name = "Bio")]
-    [MaxLength(500)]
+    [MaxLength(500, ErrorMessage = "Bio cannot exceed 500 characters")]
     public string? Bio { get; set; }
 
     [Display(Name = "Profile Picture")]

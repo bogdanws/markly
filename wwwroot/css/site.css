@@ -894,7 +894,7 @@ a:focus {
 
 /* Private Bookmark Indicator */
 .bookmark-card--private {
-    border: 2px dashed var(--gray-300); /* Dashed border for private */
+    border: 2px dashed var(--gray-400); /* Dashed border for private */
     background-color: var(--gray-50); /* Slightly different background */
     box-shadow: none; /* Remove shadow for private cards */
 }
@@ -921,4 +921,11 @@ a:focus {
 
 .bookmark-card__private-indicator i {
     font-size: 0.9rem;
+}
+
+/* Profile Page Masonry Override */
+@media (min-width: 1200px) {
+    .masonry-grid-profile {
+        column-count: 2;
+    }
 }

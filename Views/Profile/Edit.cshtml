@@ -45,8 +45,8 @@
                                 </div>
                             }
                             
-                            <input asp-for="ProfilePicture" class="form-control" type="file" accept=".jpg,.jpeg,.png,.gif" />
-                            <div class="form-text">Accepted formats: JPG, PNG, GIF. Max size: 2MB.</div>
+                            <input asp-for="ProfilePicture" class="form-control" type="file" accept=".jpg,.jpeg,.png,.gif" aria-describedby="profilePictureHelp" />
+                            <div id="profilePictureHelp" class="form-text">Accepted formats: JPG, PNG, GIF. Max size: 2MB.</div>
                             <span asp-validation-for="ProfilePicture" class="text-danger"></span>
                         </div>
 
