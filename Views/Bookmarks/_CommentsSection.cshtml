@@ -2,6 +2,7 @@
 @{
     var bookmarkId = (int)ViewData["BookmarkId"]!;
     var isAuthenticated = (bool)ViewData["IsAuthenticated"]!;
+    var currentUserProfilePictureUrl = ViewData["CurrentUserProfilePictureUrl"] as string;
 }
 
 <div class="comments-section mt-5" id="commentsSection">
@@ -13,26 +14,46 @@
     @if (isAuthenticated)
     {
         <div class="comment-composer mb-4" id="commentComposer">
-            <div class="comment-composer__inner">
-                <div class="comment-composer__avatar">
+            <div class="comment-composer__avatar">
+                @if (!string.IsNullOrEmpty(currentUserProfilePictureUrl))
+                {
+                    <img src="@currentUserProfilePictureUrl" alt="Your avatar" class="comment-avatar-img" />
+                }
+                else
+                {
                     <i class="bi bi-person-fill"></i>
+                }
+            </div>
+            <div class="comment-composer__card">
+                <!-- Collapsed trigger -->
+                <div class="comment-composer__trigger" id="composerTrigger">
+                    <span class="comment-composer__trigger-text">Share your thoughts...</span>
                 </div>
-                <div class="comment-composer__content">
-                    <form id="commentForm" data-bookmark-id="@bookmarkId">
-                        <div class="comment-composer__textarea-wrapper">
-                            <textarea id="commentContent" class="form-control comment-composer__textarea" rows="3"
-                                      placeholder="Share your thoughts..." maxlength="2000"></textarea>
-                        </div>
-                        <div class="comment-composer__footer">
-                            <small class="text-muted">
-                                <span id="charCount">0</span>/2000 characters
-                            </small>
-                            <button type="submit" class="btn btn-primary" id="submitComment">
-                                <i class="bi bi-send me-1"></i> Post Comment
+                <!-- Expanded form -->
+                <form id="commentForm" class="comment-composer__form" data-bookmark-id="@bookmarkId" data-user-profile-picture="@currentUserProfilePictureUrl">
+                    <div class="comment-composer__textarea-wrapper">
+                        <textarea id="commentContent" class="form-control comment-composer__textarea" rows="3"
+                                  placeholder="What are your thoughts?" maxlength="2000"></textarea>
+                    </div>
+                    <div class="comment-composer__footer">
+                        <span class="char-counter" id="charCounter">
+                            <span id="charCount">0</span> / 2000
+                        </span>
+                        <div class="comment-composer__actions">
+                            <button type="button" class="comment-cancel-btn" id="cancelComment">
+                                Cancel
+                            </button>
+                            <button type="submit" class="comment-submit-btn" id="submitComment" disabled>
+                                <span class="comment-submit-btn__text">
+                                    <i class="bi bi-send-fill me-1"></i> Post
+                                </span>
+                                <span class="comment-submit-btn__success">
+                                    <i class="bi bi-check-lg"></i>
+                                </span>
                             </button>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                </form>
             </div>
         </div>
     }

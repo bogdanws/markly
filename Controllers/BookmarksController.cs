@@ -219,6 +219,9 @@ public class BookmarksController : Controller
             return NotFound();
         }
 
+        var currentUser = await _userManager.GetUserAsync(User);
+        ViewData["CurrentUserProfilePictureUrl"] = currentUser?.ProfilePictureUrl;
+
         var model = BuildDetailsViewModel(bookmark, currentUserId);
         return View(model);
     }
@@ -290,6 +293,7 @@ public class BookmarksController : Controller
                     Id = c.Id,
                     Content = c.Content,
                     AuthorName = UserHelper.GetAuthorName(c.User),
+                    AuthorProfilePictureUrl = c.User?.ProfilePictureUrl,
                     CreatedAt = c.CreatedAt,
                     UpdatedAt = c.UpdatedAt,
                     IsOwner = !string.IsNullOrEmpty(currentUserId) && c.UserId == currentUserId

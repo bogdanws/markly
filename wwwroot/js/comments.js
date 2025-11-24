@@ -2,6 +2,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const commentsSection = document.getElementById('commentsSection');
     if (!commentsSection) return;
 
+    const commentComposer = document.getElementById('commentComposer');
+    const composerTrigger = document.getElementById('composerTrigger');
+    const cancelBtn = document.getElementById('cancelComment');
     const commentForm = document.getElementById('commentForm');
     const commentContent = document.getElementById('commentContent');
     const charCount = document.getElementById('charCount');
@@ -9,11 +12,91 @@ document.addEventListener('DOMContentLoaded', function () {
     const commentsList = document.getElementById('commentsList');
     const commentCountBadge = document.getElementById('commentCount');
 
-    // Character counter
+    // Expand/Collapse composer
+    function expandComposer() {
+        if (!commentComposer) return;
+        commentComposer.classList.add('comment-composer--expanded');
+        setTimeout(() => {
+            commentContent?.focus();
+        }, 50);
+    }
+
+    function collapseComposer() {
+        if (!commentComposer || !commentContent) return;
+        if (commentContent.value.trim()) return; // Don't collapse if there's content
+        commentComposer.classList.remove('comment-composer--expanded');
+    }
+
+    if (composerTrigger) {
+        composerTrigger.addEventListener('click', expandComposer);
+    }
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function () {
+            if (commentContent) {
+                commentContent.value = '';
+                updateCharCounter(0);
+            }
+            if (commentComposer) {
+                commentComposer.classList.remove('comment-composer--expanded');
+            }
+        });
+    }
+
+    // Collapse when clicking outside (if empty)
+    document.addEventListener('click', function (e) {
+        if (!commentComposer?.classList.contains('comment-composer--expanded')) return;
+        if (commentComposer.contains(e.target)) return;
+        collapseComposer();
+    });
+
+    // Character counter with microinteractions
+    const charCounter = document.getElementById('charCounter');
+    const maxChars = 2000;
+    let lastCharCount = 0;
+
+    function updateCharCounter(length) {
+        if (!charCount || !charCounter) return;
+
+        // Update text
+        charCount.textContent = length;
+
+        // Remove all state classes
+        charCounter.classList.remove('char-counter--warning', 'char-counter--danger', 'char-counter--shake');
+
+        // Add appropriate state class based on thresholds
+        if (length >= maxChars) {
+            charCounter.classList.add('char-counter--danger');
+            if (lastCharCount < maxChars) {
+                charCounter.classList.add('char-counter--shake');
+            }
+        } else if (length >= maxChars * 0.9) {
+            charCounter.classList.add('char-counter--danger');
+        } else if (length >= maxChars * 0.75) {
+            charCounter.classList.add('char-counter--warning');
+        }
+
+        // Bump animation on changes
+        if (length !== lastCharCount && length > 0) {
+            charCounter.classList.add('char-counter--bump');
+            setTimeout(() => charCounter.classList.remove('char-counter--bump'), 150);
+        }
+
+        lastCharCount = length;
+
+        // Update submit button state
+        if (submitBtn) {
+            submitBtn.disabled = length === 0;
+        }
+    }
+
     if (commentContent) {
         commentContent.addEventListener('input', function () {
-            charCount.textContent = this.value.length;
+            updateCharCounter(this.value.length);
         });
+
+        // Initialize counter state
+        updateCharCounter(commentContent.value.length);
     }
 
     // Submit new comment
@@ -50,8 +133,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     updateCommentCount(1);
 
+                    // Success animation
+                    submitBtn.classList.add('comment-submit-btn--success');
+                    setTimeout(() => {
+                        submitBtn.classList.remove('comment-submit-btn--success');
+                    }, 1500);
+
                     commentContent.value = '';
-                    charCount.textContent = '0';
+                    updateCharCounter(0);
+
+                    // Collapse composer after posting
+                    setTimeout(() => {
+                        if (commentComposer) {
+                            commentComposer.classList.remove('comment-composer--expanded');
+                        }
+                    }, 800);
 
                     showToast('Comment posted successfully!', 'success');
                 } else {
@@ -203,6 +299,10 @@ document.addEventListener('DOMContentLoaded', function () {
             day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
         });
 
+        const avatarHtml = comment.authorProfilePictureUrl
+            ? `<img src="${escapeHtml(comment.authorProfilePictureUrl)}" alt="${escapeHtml(comment.authorName)}" class="comment-avatar-img" />`
+            : `<div class="comment-avatar-placeholder"><i class="bi bi-person-fill"></i></div>`;
+
         const ownerActions = comment.isOwner ? `
             <div class="comment-actions">
                 <button class="btn btn-sm btn-link text-muted p-0 me-2 edit-comment-btn"
@@ -229,23 +329,27 @@ document.addEventListener('DOMContentLoaded', function () {
         return `
             <div class="comment-item card border-0 shadow-sm mb-3" data-comment-id="${comment.id}">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div>
-                            <span class="fw-semibold text-dark">
-                                <i class="bi bi-person-circle me-1 text-muted"></i>
-                                ${escapeHtml(comment.authorName)}
-                            </span>
-                            <small class="text-muted ms-2">
-                                ${createdAt}
-                                ${editedText}
-                            </small>
+                    <div class="d-flex gap-3">
+                        <div class="comment-item__avatar flex-shrink-0">
+                            ${avatarHtml}
                         </div>
-                        ${ownerActions}
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="fw-semibold text-dark">${escapeHtml(comment.authorName)}</span>
+                                    <small class="text-muted ms-2">
+                                        ${createdAt}
+                                        ${editedText}
+                                    </small>
+                                </div>
+                                ${ownerActions}
+                            </div>
+                            <div class="comment-content">
+                                <p class="mb-0 text-break comment-text">${escapeHtml(comment.content)}</p>
+                            </div>
+                            ${editForm}
+                        </div>
                     </div>
-                    <div class="comment-content">
-                        <p class="mb-0 text-break comment-text">${escapeHtml(comment.content)}</p>
-                    </div>
-                    ${editForm}
                 </div>
             </div>
         `;

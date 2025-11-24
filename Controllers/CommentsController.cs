@@ -71,6 +71,7 @@ public class CommentsController : Controller
                 Id = comment.Id,
                 Content = comment.Content,
                 AuthorName = UserHelper.GetAuthorName(user),
+                AuthorProfilePictureUrl = user.ProfilePictureUrl,
                 CreatedAt = comment.CreatedAt,
                 UpdatedAt = comment.UpdatedAt,
                 IsOwner = true
@@ -118,6 +119,7 @@ public class CommentsController : Controller
                 Id = comment.Id,
                 Content = comment.Content,
                 AuthorName = UserHelper.GetAuthorName(user),
+                AuthorProfilePictureUrl = user.ProfilePictureUrl,
                 CreatedAt = comment.CreatedAt,
                 UpdatedAt = comment.UpdatedAt,
                 IsOwner = true
