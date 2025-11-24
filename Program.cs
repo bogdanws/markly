@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Antiforgery;
 using markly.Data;
 using markly.Data.Entities;
 using markly.Services.Interfaces;
@@ -49,6 +50,13 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.SlidingExpiration = true;
 });
 
+// Antiforgery configuration for AJAX/JSON requests
+// https://learn.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-10.0
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-XSRF-TOKEN";
+});
+
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
@@ -66,6 +74,15 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Antiforgery token endpoint for AJAX requests
+app.MapGet("/antiforgery/token", (IAntiforgery forgeryService, HttpContext context) =>
+{
+    var tokens = forgeryService.GetAndStoreTokens(context);
+    context.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!,
+        new CookieOptions { HttpOnly = false });
+    return Results.Ok();
+}).RequireAuthorization();
 
 app.MapStaticAssets();
 
