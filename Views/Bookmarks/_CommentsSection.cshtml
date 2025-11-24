@@ -1,0 +1,63 @@
+@model IEnumerable<markly.ViewModels.CommentDto>
+@{
+    var bookmarkId = (int)ViewData["BookmarkId"]!;
+    var isAuthenticated = (bool)ViewData["IsAuthenticated"]!;
+}
+
+<div class="comments-section mt-5" id="commentsSection">
+    <h5 class="fw-semibold text-secondary mb-4">
+        <i class="bi bi-chat-dots me-2"></i>Comments
+        <span class="badge bg-secondary-subtle text-secondary ms-2" id="commentCount">@Model.Count()</span>
+    </h5>
+
+    @if (isAuthenticated)
+    {
+        <div class="comment-composer mb-4" id="commentComposer">
+            <div class="comment-composer__inner">
+                <div class="comment-composer__avatar">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+                <div class="comment-composer__content">
+                    <form id="commentForm" data-bookmark-id="@bookmarkId">
+                        <div class="comment-composer__textarea-wrapper">
+                            <textarea id="commentContent" class="form-control comment-composer__textarea" rows="3"
+                                      placeholder="Share your thoughts..." maxlength="2000"></textarea>
+                        </div>
+                        <div class="comment-composer__footer">
+                            <small class="text-muted">
+                                <span id="charCount">0</span>/2000 characters
+                            </small>
+                            <button type="submit" class="btn btn-primary" id="submitComment">
+                                <i class="bi bi-send me-1"></i> Post Comment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-light border mb-4">
+            <i class="bi bi-info-circle me-2"></i>
+            <a asp-controller="Account" asp-action="Login" class="alert-link">Sign in</a> to leave a comment.
+        </div>
+    }
+
+    <div id="commentsList">
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5 text-muted" id="noCommentsMessage">
+                <i class="bi bi-chat-square-text fs-1 d-block mb-2 opacity-50"></i>
+                <p class="mb-0">No comments yet. Be the first to share your thoughts!</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var comment in Model)
+            {
+                <partial name="_CommentItem" model="comment" />
+            }
+        }
+    </div>
+</div>

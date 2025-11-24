@@ -13,4 +13,5 @@ public class BookmarkDetailsViewModel
     public string AuthorName { get; set; } = string.Empty;
     public bool CanEdit { get; set; }
     public BookmarkMediaContent MediaContent { get; set; } = new();
+    public List<CommentDto> Comments { get; set; } = new();
 }
