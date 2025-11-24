@@ -3,6 +3,10 @@
     --purple-primary: #7C3AED;
     --purple-light: #A78BFA;
     --purple-glow: rgba(124, 58, 237, 0.1);
+    --purple-primary-ultra-light: rgba(124, 58, 237, 0.05);
+    --purple-light-subtle: rgba(167, 139, 250, 0.1);
+    --purple-light-muted: rgba(167, 139, 250, 0.15);
+    --purple-primary-very-light: rgba(124, 58, 237, 0.08);
 
     /* Neutrals */
     --gray-50: #F9FAFB;
@@ -662,7 +666,7 @@ p {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(167, 139, 250, 0.1));
+    background: linear-gradient(135deg, var(--purple-primary-very-light), var(--purple-light-subtle));
 }
 
 .bookmark-card__placeholder {
@@ -974,7 +978,7 @@ a:focus {
 .category-create-btn:hover {
     border-color: var(--purple-primary);
     color: var(--purple-primary);
-    background: rgba(124, 58, 237, 0.05);
+    background: var(--purple-primary-ultra-light);
 }
 
 /* ===========================
@@ -1074,7 +1078,7 @@ a:focus {
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(167, 139, 250, 0.15));
+    background: linear-gradient(135deg, var(--purple-glow), var(--purple-light-muted));
     display: flex;
     align-items: center;
     justify-content: center;
