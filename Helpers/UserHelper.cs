@@ -19,4 +19,15 @@ public static class UserHelper
 
         return user.UserName ?? "Unknown";
     }
+
+    public static string? BuildTextPreview(string? textContent, int maxLength = 100)
+    {
+        if (string.IsNullOrWhiteSpace(textContent))
+        {
+            return null;
+        }
+
+        var trimmed = textContent.Trim();
+        return trimmed.Length <= maxLength ? trimmed : $"{trimmed.Substring(0, maxLength)}...";
+    }
 }

@@ -36,12 +36,10 @@ public class ProfileController : Controller
         }
 
         var isOwner = User.Identity?.IsAuthenticated == true && 
-                      string.Equals(User.Identity.Name, username, StringComparison.OrdinalIgnoreCase);
+                        string.Equals(User.Identity.Name, username, StringComparison.OrdinalIgnoreCase);
 
         var rawBookmarks = await _context.Bookmarks
             .Where(b => b.UserId == user.Id && (b.IsPublic || isOwner))
-            .Include(b => b.User)
-            .Include(b => b.Votes)
             .OrderByDescending(b => b.CreatedAt)
             .Take(20)
             .Select(b => new
@@ -69,9 +67,7 @@ public class ProfileController : Controller
                 CreatedAt = b.CreatedAt,
                 VoteCount = b.VoteCount,
                 MediaImageUrl = media.ImageUrl,
-                MediaTextPreview = media.TextContent != null && media.TextContent.Length > 100 
-                    ? media.TextContent.Substring(0, 100) + "..." 
-                    : media.TextContent,
+                MediaTextPreview = Helpers.UserHelper.BuildTextPreview(media.TextContent),
                 IsPrivate = !b.IsPublic
             };
         }).ToList();
@@ -122,65 +118,103 @@ public class ProfileController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(EditProfileViewModel model)
     {
-        if (!ModelState.IsValid)
-        {
-            return View(model);
-        }
-
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
         {
             return NotFound();
         }
 
+        if (!ModelState.IsValid)
+        {
+            model.CurrentProfilePictureUrl = user.ProfilePictureUrl;
+            return View(model);
+        }
+
+        var oldProfilePictureUrl = user.ProfilePictureUrl;
+        string? newProfilePicturePath = null;
+
+        if (model.ProfilePicture != null)
+        {
+            if (!IsValidImage(model.ProfilePicture))
+            {
+                ModelState.AddModelError("ProfilePicture", "Invalid image file. Only JPG, PNG, and GIF are allowed (max 2MB).");
+                model.CurrentProfilePictureUrl = user.ProfilePictureUrl;
+                return View(model);
+            }
+
+            try 
+            {
+                newProfilePicturePath = await _fileStorage.SaveFileAsync(model.ProfilePicture, "images/profiles");
+                user.ProfilePictureUrl = "/" + newProfilePicturePath;
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError("ProfilePicture", "File upload failed. Please try again.");
+                model.CurrentProfilePictureUrl = user.ProfilePictureUrl;
+                return View(model);
+            }
+        }
+
         user.FirstName = model.FirstName;
         user.LastName = model.LastName;
         user.Bio = model.Bio;
 
-        if (model.ProfilePicture != null)
-        {
-            // Validation for image
-            if (model.ProfilePicture.Length > 2 * 1024 * 1024) // 2MB
-            {
-                ModelState.AddModelError("ProfilePicture", "File size must not exceed 2MB.");
-                return View(model);
-            }
-
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-            var extension = Path.GetExtension(model.ProfilePicture.FileName).ToLowerInvariant();
-            if (!allowedExtensions.Contains(extension))
-            {
-                ModelState.AddModelError("ProfilePicture", "Invalid file type. Only JPG, JPEG, PNG, and GIF are allowed.");
-                return View(model);
-            }
-
-            // Store old profile picture URL to delete after successful upload
-            var oldProfilePictureUrl = user.ProfilePictureUrl;
-
-            // Save new profile picture
-            var path = await _fileStorage.SaveFileAsync(model.ProfilePicture, "images/profiles");
-            user.ProfilePictureUrl = "/" + path;
-
-            // Delete old profile picture if it exists
-            if (!string.IsNullOrEmpty(oldProfilePictureUrl))
-            {
-                // Remove leading slash for file storage service
-                var oldPath = oldProfilePictureUrl.TrimStart('/');
-                await _fileStorage.DeleteFileAsync(oldPath);
-            }
-        }
-
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)
         {
+            // Rollback: Delete the newly uploaded file if DB update fails
+            if (!string.IsNullOrEmpty(newProfilePicturePath))
+            {
+                await _fileStorage.DeleteFileAsync(newProfilePicturePath);
+            }
+
             foreach (var error in result.Errors)
             {
                 ModelState.AddModelError(string.Empty, error.Description);
             }
+            
+            // Restore original URL for view logic if needed
+            model.CurrentProfilePictureUrl = oldProfilePictureUrl;
             return View(model);
+        }
+
+        // Success: Delete old profile picture if it exists and we uploaded a new one
+        if (!string.IsNullOrEmpty(newProfilePicturePath) && !string.IsNullOrEmpty(oldProfilePictureUrl))
+        {
+            var oldPath = oldProfilePictureUrl.TrimStart('/');
+            await _fileStorage.DeleteFileAsync(oldPath);
         }
 
         TempData["StatusMessage"] = "Your profile has been updated";
         return RedirectToAction(nameof(Index), new { username = user.UserName });
+    }
+
+    private static bool IsValidImage(IFormFile file)
+    {
+        if (file == null || file.Length == 0 || file.Length > 2 * 1024 * 1024)
+            return false;
+
+        Span<byte> header = stackalloc byte[8];
+        try
+        {
+            using var stream = file.OpenReadStream();
+            if (stream.Read(header) < 8)
+                return false;
+
+            // JPEG: FF D8
+            if (header[0] == 0xFF && header[1] == 0xD8) return true;
+
+            // PNG: 89 50 4E 47 0D 0A 1A 0A
+            if (header.SequenceEqual(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A })) return true;
+
+            // GIF: 47 49 46 38
+            if (header[0] == 0x47 && header[1] == 0x49 && header[2] == 0x46 && header[3] == 0x38) return true;
+
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

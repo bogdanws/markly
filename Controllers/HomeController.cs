@@ -65,7 +65,7 @@ public class HomeController : Controller
                 CreatedAt = b.CreatedAt,
                 VoteCount = item.VoteCount,
                 MediaImageUrl = media.ImageUrl,
-                MediaTextPreview = BuildTextPreview(media.TextContent)
+                MediaTextPreview = UserHelper.BuildTextPreview(media.TextContent, 160)
             };
         }).ToList();
 
@@ -99,16 +99,5 @@ public class HomeController : Controller
         }
 
         return "recent";
-    }
-
-    private static string? BuildTextPreview(string? textContent)
-    {
-        if (string.IsNullOrWhiteSpace(textContent))
-        {
-            return null;
-        }
-
-        var trimmed = textContent.Trim();
-        return trimmed.Length <= 160 ? trimmed : $"{trimmed.Substring(0, 160)}...";
     }
 }
