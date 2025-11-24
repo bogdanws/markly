@@ -1,5 +1,10 @@
 @model markly.ViewModels.BookmarkFormViewModel
 
+@{
+    ViewData["PublicText"] = "Visible to everyone";
+    ViewData["PrivateText"] = "Visible only to you";
+}
+
 <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3" role="alert"></div>
 
 @if (Model.Id.HasValue)
@@ -64,30 +69,157 @@
     <span asp-validation-for="TextContent" class="text-danger"></span>
 </div>
 
-@* Visibility Settings *@
-<div class="d-flex align-items-center py-2">
-    <div class="form-check form-switch flex-grow-1">
-        <input asp-for="IsPublic" class="form-check-input" id="isPublicSwitch" onchange="updateVisibilityText()" />
-        <label asp-for="IsPublic" class="form-check-label fw-semibold">Make Public</label>
-        <div class="text-muted small ms-3 d-inline-block" id="visibilityText">
-            <i class="bi @(Model.IsPublic ? "bi-eye" : "bi-eye-slash") me-1" id="visibilityIcon"></i>
-            <span id="visibilityLabel">@(Model.IsPublic ? "Visible to everyone" : "Visible only to you")</span>
-        </div>
+@* Categories *@
+<div class="mb-4">
+    <label class="form-label fw-semibold">Categories</label>
+    
+    @* Hidden Select for Binding *@
+    <select asp-for="SelectedCategoryIds" asp-items="Model.AvailableCategories" class="d-none" multiple id="categorySelect">
+    </select>
+
+    @* Visual Picker *@
+    <div class="category-picker" id="categoryPicker">
+        @* Chips injected by JS *@
+        <button type="button" class="btn category-chip category-create-btn" id="showCreateCategoryBtn" aria-label="Create new category">
+            <i class="bi bi-plus-lg"></i> New
+        </button>
     </div>
+
+    @* Inline Creator *@
+    <div class="card p-3 mb-3 d-none shadow-sm" id="createCategoryGroup" style="max-width: 300px; border: 1px solid var(--purple-light);">
+        <div class="mb-2">
+            <input type="text" class="form-control form-control-sm" id="newCategoryName" placeholder="Category Name">
+        </div>
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="newCategoryPublic">
+                <label class="form-check-label small text-muted" for="newCategoryPublic">Public</label>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-light border" type="button" id="cancelCreateCategory">Cancel</button>
+                <button class="btn btn-sm btn-primary" type="button" id="submitCreateCategory">Add</button>
+            </div>
+        </div>
+        <div class="text-danger small mt-2" id="createCategoryError"></div>
+    </div>
+    
+    <span asp-validation-for="SelectedCategoryIds" class="text-danger"></span>
 </div>
 
-<script>
-    function updateVisibilityText() {
-        const isPublicSwitch = document.getElementById('isPublicSwitch');
-        const visibilityLabel = document.getElementById('visibilityLabel');
-        const visibilityIcon = document.getElementById('visibilityIcon');
+@* Visibility Settings *@
+<partial name="_VisibilityToggle" model="Model.IsPublic" />
 
-        if (isPublicSwitch.checked) {
-            visibilityLabel.textContent = 'Visible to everyone';
-            visibilityIcon.className = 'bi bi-eye me-1';
-        } else {
-            visibilityLabel.textContent = 'Visible only to you';
-            visibilityIcon.className = 'bi bi-eye-slash me-1';
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Category Picker Logic
+        const select = document.getElementById('categorySelect');
+        const picker = document.getElementById('categoryPicker');
+        const showCreateBtn = document.getElementById('showCreateCategoryBtn');
+        const createGroup = document.getElementById('createCategoryGroup');
+        const input = document.getElementById('newCategoryName');
+        const publicCheck = document.getElementById('newCategoryPublic');
+        const cancelBtn = document.getElementById('cancelCreateCategory');
+        const submitBtn = document.getElementById('submitCreateCategory');
+        const errorMsg = document.getElementById('createCategoryError');
+
+        // Render Initial Chips
+        Array.from(select.options).forEach(option => {
+            createChip(option.value, option.text, option.selected);
+        });
+
+        // Ensure "New" button is always last
+        picker.appendChild(showCreateBtn);
+
+        function createChip(value, text, isSelected) {
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = `category-chip ${isSelected ? 'selected' : ''}`;
+            chip.dataset.value = value;
+            chip.innerHTML = `<i class="bi bi-check-lg"></i>${text}`;
+            chip.setAttribute('aria-label', `${text}${isSelected ? ', selected' : ''}`);
+
+            const toggleSelection = () => {
+                chip.classList.toggle('selected');
+                const option = select.querySelector(`option[value="${value}"]`);
+                option.selected = chip.classList.contains('selected');
+                chip.setAttribute('aria-label', `${text}${chip.classList.contains('selected') ? ', selected' : ''}`);
+            };
+
+            chip.addEventListener('click', toggleSelection);
+            chip.addEventListener('keydown', (e) => {
+                if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    toggleSelection();
+                }
+            });
+
+            picker.insertBefore(chip, showCreateBtn);
         }
-    }
+
+        // Create New Logic
+        showCreateBtn.addEventListener('click', () => {
+            showCreateBtn.classList.add('d-none');
+            createGroup.classList.remove('d-none');
+            input.focus();
+        });
+
+        cancelBtn.addEventListener('click', resetCreateForm);
+
+        submitBtn.addEventListener('click', async () => {
+            const name = input.value.trim();
+            if (!name) return;
+
+            submitBtn.disabled = true;
+            errorMsg.textContent = '';
+
+            try {
+                const response = await csrf.fetch('/Categories/CreateQuick', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        isPublic: publicCheck.checked
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Add option to select
+                    const option = new Option(data.category.name, data.category.id, true, true);
+                    select.add(option);
+
+                    // Add chip
+                    createChip(data.category.id, data.category.name, true);
+
+                    resetCreateForm();
+                } else {
+                    errorMsg.textContent = data.message || 'Failed to create category.';
+                }
+            } catch (e) {
+                console.error('Error creating category:', e);
+                errorMsg.textContent = 'Failed to create category. Please try again.';
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+        
+        function resetCreateForm() {
+            input.value = '';
+            publicCheck.checked = false;
+            createGroup.classList.add('d-none');
+            showCreateBtn.classList.remove('d-none');
+            errorMsg.textContent = '';
+        }
+        
+        // Allow Enter key to submit
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                submitBtn.click();
+            }
+        });
+    });
 </script>

@@ -1,0 +1,35 @@
+@model bool
+
+<div class="d-flex align-items-center py-2 mb-4">
+    <div class="form-check form-switch flex-grow-1">
+        <input type="checkbox" name="IsPublic" id="isPublicSwitch" class="form-check-input" value="true" @(Model ? "checked=\"checked\"" : "") />
+        <input type="hidden" name="IsPublic" value="false" />
+        <label for="isPublicSwitch" class="form-check-label fw-semibold">Make Public</label>
+        <div class="text-muted small ms-3 d-inline-block" id="visibilityText">
+            <i class="bi @(Model ? "bi-eye" : "bi-eye-slash") me-1" id="visibilityIcon"></i>
+            <span id="visibilityLabel">@(Model ? (ViewData["PublicText"] ?? "Visible to everyone") : (ViewData["PrivateText"] ?? "Visible only to you"))</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const toggle = document.getElementById('isPublicSwitch');
+        const label = document.getElementById('visibilityLabel');
+        const icon = document.getElementById('visibilityIcon');
+        const publicText = @Html.Raw(Json.Serialize(ViewData["PublicText"] ?? "Visible to everyone"));
+        const privateText = @Html.Raw(Json.Serialize(ViewData["PrivateText"] ?? "Visible only to you"));
+
+        function updateVisibilityText() {
+            if (toggle.checked) {
+                label.textContent = publicText;
+                icon.className = 'bi bi-eye me-1';
+            } else {
+                label.textContent = privateText;
+                icon.className = 'bi bi-eye-slash me-1';
+            }
+        }
+
+        toggle?.addEventListener('change', updateVisibilityText);
+    })();
+</script>

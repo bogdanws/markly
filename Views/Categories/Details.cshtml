@@ -1,0 +1,60 @@
+@model markly.ViewModels.CategoryDetailsViewModel
+
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<div class="container py-4">
+    <div class="mb-4 pb-3 border-bottom d-flex justify-content-between align-items-end">
+        <div>
+            <div class="text-muted small mb-1">Category</div>
+            <h1 class="display-6 fw-bold mb-0">@Model.Name</h1>
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <p class="text-muted mb-2">@Model.Description</p>
+            }
+            <div class="mt-2">
+                @if (Model.IsPublic)
+                {
+                    <span class="badge bg-success">Public</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">Private</span>
+                }
+                <span class="text-muted ms-2 small">Created by @Model.OwnerName on @Model.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy")</span>
+            </div>
+        </div>
+        
+        @if (Model.IsOwner)
+        {
+            <div class="d-flex gap-2">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-pencil me-1"></i> Edit
+                </a>
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-trash me-1"></i> Delete
+                </a>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Bookmarks.Any())
+    {
+        <div class="text-center py-5">
+            <div class="text-muted mb-3">
+                <i class="bi bi-bookmark display-4"></i>
+            </div>
+            <h3 class="h5 text-muted">No bookmarks in this category yet.</h3>
+        </div>
+    }
+    else
+    {
+        <div class="masonry-grid">
+            @foreach (var bookmark in Model.Bookmarks)
+            {
+                <partial name="_BookmarkCard" model="bookmark" />
+            }
+        </div>
+    }
+</div>
