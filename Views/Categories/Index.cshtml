@@ -84,10 +84,10 @@
                             <a asp-action="Details" asp-route-id="@category.Id" class="btn btn-sm btn-outline-primary flex-grow-1">
                                 <i class="bi bi-eye"></i> View
                             </a>
-                            <a asp-action="Edit" asp-route-id="@category.Id" class="btn btn-sm btn-outline-secondary">
+                            <a asp-action="Edit" asp-route-id="@category.Id" class="btn btn-sm btn-outline-secondary" aria-label="Edit @category.Name">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <a asp-action="Delete" asp-route-id="@category.Id" class="btn btn-sm btn-outline-danger">
+                            <a asp-action="Delete" asp-route-id="@category.Id" class="btn btn-sm btn-outline-danger" aria-label="Delete @category.Name">
                                 <i class="bi bi-trash"></i>
                             </a>
                         </div>
