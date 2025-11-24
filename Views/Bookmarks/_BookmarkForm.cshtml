@@ -131,15 +131,26 @@
         picker.appendChild(showCreateBtn);
 
         function createChip(value, text, isSelected) {
-            const chip = document.createElement('div');
+            const chip = document.createElement('button');
+            chip.type = 'button';
             chip.className = `category-chip ${isSelected ? 'selected' : ''}`;
             chip.dataset.value = value;
             chip.innerHTML = `<i class="bi bi-check-lg"></i>${text}`;
-            
-            chip.addEventListener('click', () => {
+            chip.setAttribute('aria-label', `${text}${isSelected ? ', selected' : ''}`);
+
+            const toggleSelection = () => {
                 chip.classList.toggle('selected');
                 const option = select.querySelector(`option[value="${value}"]`);
                 option.selected = chip.classList.contains('selected');
+                chip.setAttribute('aria-label', `${text}${chip.classList.contains('selected') ? ', selected' : ''}`);
+            };
+
+            chip.addEventListener('click', toggleSelection);
+            chip.addEventListener('keydown', (e) => {
+                if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    toggleSelection();
+                }
             });
 
             picker.insertBefore(chip, showCreateBtn);
