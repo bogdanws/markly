@@ -1,7 +1,13 @@
 @model BookmarkListItemViewModel
 
 <div class="col">
-    <article class="bookmark-card position-relative">
+    <article class="bookmark-card position-relative @(Model.IsPrivate ? "bookmark-card--private" : "")">
+        @if (Model.IsPrivate)
+        {
+            <div class="bookmark-card__private-indicator">
+                <i class="bi bi-lock-fill"></i> Private
+            </div>
+        }
         @if (!string.IsNullOrWhiteSpace(Model.MediaImageUrl))
         {
             <div class="bookmark-card__media">

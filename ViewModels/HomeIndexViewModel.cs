@@ -21,4 +21,5 @@ public class BookmarkListItemViewModel
     public int VoteCount { get; set; }
     public string? MediaImageUrl { get; set; }
     public string? MediaTextPreview { get; set; }
+    public bool IsPrivate { get; set; }
 }

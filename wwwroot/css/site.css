@@ -876,8 +876,7 @@ p {
     }
 }
 
-/* ===========================
-   Focus States (Accessibility)
+/* Focus States (Accessibility)
    =========================== */
 
 .btn:focus,
@@ -891,4 +890,42 @@ p {
 a:focus {
     outline: 2px solid var(--purple-primary);
     outline-offset: 2px;
+}
+
+/* Private Bookmark Indicator */
+.bookmark-card--private {
+    border: 2px dashed var(--gray-400); /* Dashed border for private */
+    background-color: var(--gray-50); /* Slightly different background */
+    box-shadow: none; /* Remove shadow for private cards */
+}
+
+.bookmark-card--private:hover {
+    box-shadow: var(--shadow-sm); /* Add a subtle shadow back on hover */
+}
+
+.bookmark-card__private-indicator {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background-color: var(--gray-700);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    font-weight: 600;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.bookmark-card__private-indicator i {
+    font-size: 0.9rem;
+}
+
+/* Profile Page Masonry Override */
+@media (min-width: 1200px) {
+    .masonry-grid-profile {
+        column-count: 2;
+    }
 }
