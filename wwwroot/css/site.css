@@ -1660,6 +1660,10 @@ a:focus {
     word-wrap: break-word;
 }
 
+.comment-author-link:hover {
+    color: var(--purple-primary) !important;
+}
+
 /* Toast container for comments feedback */
 #toastContainer {
     z-index: 1100;

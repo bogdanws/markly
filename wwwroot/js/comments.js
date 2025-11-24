@@ -299,9 +299,11 @@ document.addEventListener('DOMContentLoaded', function () {
             day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
         });
 
-        const avatarHtml = comment.authorProfilePictureUrl
+        const profileUrl = `/Profile/Index/${encodeURIComponent(comment.authorUserName)}`;
+        const avatarContent = comment.authorProfilePictureUrl
             ? `<img src="${escapeHtml(comment.authorProfilePictureUrl)}" alt="${escapeHtml(comment.authorName)}" class="comment-avatar-img" />`
             : `<div class="comment-avatar-placeholder"><i class="bi bi-person-fill"></i></div>`;
+        const avatarHtml = `<a href="${profileUrl}" class="text-decoration-none">${avatarContent}</a>`;
 
         const ownerActions = comment.isOwner ? `
             <div class="comment-actions">
@@ -336,7 +338,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="flex-grow-1">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <div>
-                                    <span class="fw-semibold text-dark">${escapeHtml(comment.authorName)}</span>
+                                    <a href="${profileUrl}" class="fw-semibold text-dark text-decoration-none comment-author-link">${escapeHtml(comment.authorName)}</a>
                                     <small class="text-muted ms-2">
                                         ${createdAt}
                                         ${editedText}

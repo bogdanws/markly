@@ -293,6 +293,7 @@ public class BookmarksController : Controller
                     Id = c.Id,
                     Content = c.Content,
                     AuthorName = UserHelper.GetAuthorName(c.User),
+                    AuthorUserName = c.User != null ? c.User.UserName ?? string.Empty : string.Empty,
                     AuthorProfilePictureUrl = c.User?.ProfilePictureUrl,
                     CreatedAt = c.CreatedAt,
                     UpdatedAt = c.UpdatedAt,
