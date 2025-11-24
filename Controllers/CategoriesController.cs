@@ -33,6 +33,7 @@ public class CategoriesController : Controller
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Challenge();
 
+        // Query 1: Get categories with bookmark count (no full bookmark entities loaded)
         var categories = await _context.Categories
             .Where(c => c.UserId == user.Id)
             .OrderByDescending(c => c.CreatedAt)
@@ -43,9 +44,37 @@ public class CategoriesController : Controller
                 Description = c.Description,
                 IsPublic = c.IsPublic,
                 BookmarkCount = c.BookmarkCategories.Count,
-                CreatedAt = c.CreatedAt
+                CreatedAt = c.CreatedAt,
+                PreviewImages = new List<string>()
             })
             .ToListAsync();
+
+        // Query 2: Get only Content field for bookmarks that have content
+        var categoryIds = categories.Select(c => c.Id!.Value).ToList();
+        var bookmarkContent = await _context.Set<BookmarkCategory>()
+            .Where(bc => categoryIds.Contains(bc.CategoryId) && bc.Bookmark.Content != null)
+            .Select(bc => new { bc.CategoryId, bc.Bookmark.Content })
+            .ToListAsync();
+
+        // Process in memory: extract image URLs and group by category
+        var previewsByCategory = bookmarkContent
+            .GroupBy(x => x.CategoryId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(x => BookmarkMediaContent.FromJson(x.Content))
+                      .Where(m => !string.IsNullOrWhiteSpace(m.ImageUrl))
+                      .Select(m => m.ImageUrl!)
+                      .Take(4)
+                      .ToList()
+            );
+
+        foreach (var category in categories)
+        {
+            if (category.Id.HasValue && previewsByCategory.TryGetValue(category.Id.Value, out var images))
+            {
+                category.PreviewImages = images;
+            }
+        }
 
         return View(categories);
     }

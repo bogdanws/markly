@@ -34,13 +34,46 @@
             {
                 <div class="col-md-6 col-lg-4 category-card-wrapper" data-category-name="@category.Name.ToLower()" data-category-desc="@(category.Description?.ToLower() ?? "")">
                     <div class="category-card">
+                        <!-- Stretched link to make entire card clickable -->
+                        <a asp-action="Details" asp-route-id="@category.Id" class="category-card__link" aria-label="View @category.Name category"></a>
+
+                        <!-- Preview Mosaic -->
+                        @if (category.PreviewImages.Any())
+                        {
+                            <div class="category-card__preview">
+                                <div class="category-card__preview-mosaic">
+                                    @foreach (var imageUrl in category.PreviewImages.Take(4))
+                                    {
+                                        <div class="category-card__preview-image" style="background-image: url('@imageUrl')"></div>
+                                    }
+                                </div>
+                                <div class="category-card__preview-overlay"></div>
+                            </div>
+                        }
+                        else if (category.BookmarkCount > 0)
+                        {
+                            <div class="category-card__preview category-card__preview--empty">
+                                <div class="category-card__preview-pattern"></div>
+                                <div class="category-card__preview-placeholder">
+                                    <i class="bi bi-file-text"></i>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="category-card__preview category-card__preview--empty">
+                                <div class="category-card__preview-pattern"></div>
+                                <div class="category-card__preview-placeholder">
+                                    <i class="bi bi-collection"></i>
+                                </div>
+                            </div>
+                        }
+
                         <!-- Card Header -->
                         <div class="category-card__header">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <h3 class="category-card__title mb-0">
-                                    <a asp-action="Details" asp-route-id="@category.Id" class="text-decoration-none">
-                                        @category.Name
-                                    </a>
+                                    @category.Name
                                 </h3>
                                 @if (category.IsPublic)
                                 {
@@ -81,15 +114,29 @@
 
                         <!-- Card Footer -->
                         <div class="category-card__footer">
-                            <a asp-action="Details" asp-route-id="@category.Id" class="btn btn-sm btn-outline-primary flex-grow-1">
-                                <i class="bi bi-eye"></i> View
-                            </a>
-                            <a asp-action="Edit" asp-route-id="@category.Id" class="btn btn-sm btn-outline-secondary" aria-label="Edit @category.Name">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <a asp-action="Delete" asp-route-id="@category.Id" class="btn btn-sm btn-outline-danger" aria-label="Delete @category.Name">
-                                <i class="bi bi-trash"></i>
-                            </a>
+                            @if (category.PreviewImages.Any())
+                            {
+                                <div class="category-card__thumbnails">
+                                    @foreach (var imageUrl in category.PreviewImages.Take(4))
+                                    {
+                                        <div class="category-card__thumbnail" style="background-image: url('@imageUrl')"></div>
+                                    }
+                                    @if (category.BookmarkCount > 4)
+                                    {
+                                        <div class="category-card__thumbnail category-card__thumbnail--more">
+                                            +@(category.BookmarkCount - 4)
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            <div class="category-card__actions">
+                                <a asp-action="Edit" asp-route-id="@category.Id" class="btn btn-sm btn-outline-secondary" aria-label="Edit @category.Name">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@category.Id" class="btn btn-sm btn-outline-danger" aria-label="Delete @category.Name">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

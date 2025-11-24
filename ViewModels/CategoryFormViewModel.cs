@@ -18,5 +18,8 @@ public class CategoryFormViewModel
 
     public int BookmarkCount { get; set; }
 
+    // Preview image URLs from bookmarks in this category (up to 4 images for the preview mosaic)
+    public List<string> PreviewImages { get; set; } = new();
+
     public DateTime? CreatedAt { get; set; }
 }
