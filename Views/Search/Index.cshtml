@@ -36,7 +36,14 @@
                                 <option value="">All Categories</option>
                                 @foreach (var category in Model.Categories)
                                 {
-                                    <option value="@category.Value" selected="@category.Selected">@category.Text</option>
+                                    if (category.Selected)
+                                    {
+                                        <option value="@category.Value" selected>@category.Text</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@category.Value">@category.Text</option>
+                                    }
                                 }
                             </select>
                         </div>
@@ -59,8 +66,16 @@
                         <div class="col-md-4">
                             <label for="sortOrder" class="form-label">Sort By</label>
                             <select class="form-select" id="sortOrder" name="sort">
-                                <option value="relevant" selected="@(Model.Sort == "relevant")">Most Relevant</option>
-                                <option value="recent" selected="@(Model.Sort == "recent")">Most Recent</option>
+                                @if (Model.Sort == "relevant")
+                                {
+                                    <option value="relevant" selected>Most Relevant</option>
+                                    <option value="recent">Most Recent</option>
+                                }
+                                else
+                                {
+                                    <option value="relevant">Most Relevant</option>
+                                    <option value="recent" selected>Most Recent</option>
+                                }
                             </select>
                         </div>
 

@@ -40,12 +40,12 @@ public class SearchController : Controller
         // Apply search filters
         if (!string.IsNullOrWhiteSpace(q))
         {
-            var searchTerm = q.Trim().ToLower();
+            var searchPattern = $"%{q.Trim()}%";
             bookmarksQuery = bookmarksQuery.Where(b =>
-                b.Title.ToLower().Contains(searchTerm) ||
-                b.Description.ToLower().Contains(searchTerm) ||
-                b.BookmarkCategories.Any(bc => bc.Category.Name.ToLower().Contains(searchTerm)) ||
-                b.BookmarkTags.Any(bt => bt.Tag.Name.ToLower().Contains(searchTerm)));
+                EF.Functions.ILike(b.Title, searchPattern) ||
+                EF.Functions.ILike(b.Description, searchPattern) ||
+                b.BookmarkCategories.Any(bc => EF.Functions.ILike(bc.Category.Name, searchPattern)) ||
+                b.BookmarkTags.Any(bt => EF.Functions.ILike(bt.Tag.Name, searchPattern)));
         }
 
         // Filter by category
@@ -58,9 +58,9 @@ public class SearchController : Controller
         // Filter by tag (partial match)
         if (!string.IsNullOrWhiteSpace(tag))
         {
-            var tagTerm = tag.Trim().ToLower();
+            var tagPattern = $"%{tag.Trim()}%";
             bookmarksQuery = bookmarksQuery.Where(b =>
-                b.BookmarkTags.Any(bt => bt.Tag.Name.ToLower().Contains(tagTerm)));
+                b.BookmarkTags.Any(bt => EF.Functions.ILike(bt.Tag.Name, tagPattern)));
         }
 
         // Get total count for pagination
@@ -74,9 +74,7 @@ public class SearchController : Controller
             {
                 Bookmark = b,
                 User = b.User,
-                VoteCount = b.Votes.Count,
-                Categories = b.BookmarkCategories.Select(bc => bc.Category.Name),
-                Tags = b.BookmarkTags.Select(bt => bt.Tag.Name)
+                VoteCount = b.Votes.Count
             });
 
         // Apply ordering - "relevant" orders by VoteCount then CreatedAt, "recent" by CreatedAt only
@@ -124,7 +122,8 @@ public class SearchController : Controller
         // Load popular tags for suggestions
         var popularTags = await _context.Tags
             .AsNoTracking()
-            .OrderByDescending(t => t.BookmarkTags.Count)
+            .Select(t => new { t.Name, Count = t.BookmarkTags.Count })
+            .OrderByDescending(t => t.Count)
             .Take(20)
             .Select(t => t.Name)
             .ToListAsync();
