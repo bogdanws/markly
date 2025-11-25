@@ -105,7 +105,7 @@ public class CommentsController : Controller
 
         if (!IsOwner(comment, user.Id))
         {
-            return Forbid();
+            return StatusCode(403, new { success = false, message = "You don't have permission to edit this comment." });
         }
 
         comment.Content = dto.Content.Trim();
@@ -144,7 +144,7 @@ public class CommentsController : Controller
 
         if (!IsOwner(comment, user.Id))
         {
-            return Forbid();
+            return StatusCode(403, new { success = false, message = "You don't have permission to delete this comment." });
         }
 
         _context.Comments.Remove(comment);

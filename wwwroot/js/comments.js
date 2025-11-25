@@ -315,11 +315,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const ownerActions = comment.isOwner ? `
             <div class="comment-actions">
-                <button class="btn btn-sm btn-link text-muted p-0 me-2 edit-comment-btn"
+                <button class="btn btn-sm btn-outline-secondary edit-comment-btn"
                         title="Edit comment" aria-label="Edit comment">
                     <i class="bi bi-pencil"></i>
                 </button>
-                <button class="btn btn-sm btn-link text-danger p-0 delete-comment-btn"
+                <button class="btn btn-sm btn-outline-danger delete-comment-btn"
                         title="Delete comment" aria-label="Delete comment">
                     <i class="bi bi-trash"></i>
                 </button>
