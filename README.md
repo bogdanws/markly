@@ -56,7 +56,7 @@ The application uses Claude 4.5 Haiku for AI-powered tag and category suggestion
    {
      "Anthropic": {
        "ApiKey": "your-api-key-here",
-       "Model": "claude-4-5-haiku-20250514",
+       "Model": "claude-haiku-4-5",
        "MaxTokens": 256
      }
    }
