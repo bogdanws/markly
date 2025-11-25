@@ -106,31 +106,93 @@
     <span asp-validation-for="SelectedCategoryIds" class="text-danger"></span>
 </div>
 
+@* Tags *@
+<div class="mb-4">
+    <label class="form-label fw-semibold">Tags</label>
+    
+    @* Hidden Select for Binding *@
+    <select asp-for="SelectedTagIds" asp-items="Model.AvailableTags" class="d-none" multiple id="tagSelect">
+    </select>
+
+    @* Visual Picker *@
+    <div class="category-picker" id="tagPicker">
+        @* Chips injected by JS *@
+        <button type="button" class="btn category-chip category-create-btn" id="showCreateTagBtn" aria-label="Create new tag">
+            <i class="bi bi-plus-lg"></i> New
+        </button>
+    </div>
+
+    @* Inline Creator *@
+    <div class="card p-3 mb-3 d-none shadow-sm" id="createTagGroup" style="max-width: 300px; border: 1px solid var(--purple-light);">
+        <div class="mb-2">
+            <input type="text" class="form-control form-control-sm" id="newTagName" placeholder="Tag Name (lowercase, hyphens allowed)">
+        </div>
+        <div class="d-flex gap-2 justify-content-end">
+            <button class="btn btn-sm btn-light border" type="button" id="cancelCreateTag">Cancel</button>
+            <button class="btn btn-sm btn-primary" type="button" id="submitCreateTag">Add</button>
+        </div>
+        <div class="text-danger small mt-2" id="createTagError"></div>
+    </div>
+    
+    <span asp-validation-for="SelectedTagIds" class="text-danger"></span>
+</div>
+
+@* AI Suggestions *@
+<div class="card bg-light border-0 mb-4">
+    <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <h6 class="card-title fw-bold mb-0"><i class="bi bi-stars me-2"></i>AI Suggestions</h6>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="suggestWithAiBtn">
+                <span id="aiSpinner" class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span>
+                <i class="bi bi-magic" id="aiIcon"></i>
+                <span id="aiButtonText">Suggest with AI</span>
+            </button>
+        </div>
+        <p class="card-text text-muted small mb-3">Get AI-powered tag and category suggestions based on your title and description.</p>
+        
+        @* AI Suggestions Container *@
+        <div id="aiSuggestionsContainer" class="d-none">
+            <div id="aiSuggestedTags" class="mb-3 d-none">
+                <label class="form-label fw-semibold small text-muted">Suggested Tags</label>
+                <div class="suggestion-chips" id="aiTagChips">
+                    @* Chips injected by JS *@
+                </div>
+            </div>
+            <div id="aiSuggestedCategories" class="d-none">
+                <label class="form-label fw-semibold small text-muted">Suggested Categories</label>
+                <div class="suggestion-chips" id="aiCategoryChips">
+                    @* Chips injected by JS *@
+                </div>
+            </div>
+        </div>
+        
+        <div id="aiError" class="text-danger small d-none"></div>
+    </div>
+</div>
+
 @* Visibility Settings *@
 <partial name="_VisibilityToggle" model="Model.IsPublic" />
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Category Picker Logic
-        const select = document.getElementById('categorySelect');
-        const picker = document.getElementById('categoryPicker');
-        const showCreateBtn = document.getElementById('showCreateCategoryBtn');
-        const createGroup = document.getElementById('createCategoryGroup');
-        const input = document.getElementById('newCategoryName');
-        const publicCheck = document.getElementById('newCategoryPublic');
-        const cancelBtn = document.getElementById('cancelCreateCategory');
-        const submitBtn = document.getElementById('submitCreateCategory');
-        const errorMsg = document.getElementById('createCategoryError');
+        // ==================== Category Picker Logic ====================
+        const categorySelect = document.getElementById('categorySelect');
+        const categoryPicker = document.getElementById('categoryPicker');
+        const showCreateCategoryBtn = document.getElementById('showCreateCategoryBtn');
+        const createCategoryGroup = document.getElementById('createCategoryGroup');
+        const categoryInput = document.getElementById('newCategoryName');
+        const categoryPublicCheck = document.getElementById('newCategoryPublic');
+        const cancelCategoryBtn = document.getElementById('cancelCreateCategory');
+        const submitCategoryBtn = document.getElementById('submitCreateCategory');
+        const categoryErrorMsg = document.getElementById('createCategoryError');
 
-        // Render Initial Chips
-        Array.from(select.options).forEach(option => {
-            createChip(option.value, option.text, option.selected);
+        // Render Initial Category Chips
+        Array.from(categorySelect.options).forEach(option => {
+            createCategoryChip(option.value, option.text, option.selected);
         });
+        categoryPicker.appendChild(showCreateCategoryBtn);
 
-        // Ensure "New" button is always last
-        picker.appendChild(showCreateBtn);
-
-        function createChip(value, text, isSelected) {
+        function createCategoryChip(value, text, isSelected) {
             const chip = document.createElement('button');
             chip.type = 'button';
             chip.className = `category-chip ${isSelected ? 'selected' : ''}`;
@@ -140,7 +202,7 @@
 
             const toggleSelection = () => {
                 chip.classList.toggle('selected');
-                const option = select.querySelector(`option[value="${value}"]`);
+                const option = categorySelect.querySelector(`option[value="${value}"]`);
                 option.selected = chip.classList.contains('selected');
                 chip.setAttribute('aria-label', `${text}${chip.classList.contains('selected') ? ', selected' : ''}`);
             };
@@ -153,73 +215,346 @@
                 }
             });
 
-            picker.insertBefore(chip, showCreateBtn);
+            categoryPicker.insertBefore(chip, showCreateCategoryBtn);
+            return chip;
         }
 
-        // Create New Logic
-        showCreateBtn.addEventListener('click', () => {
-            showCreateBtn.classList.add('d-none');
-            createGroup.classList.remove('d-none');
-            input.focus();
+        showCreateCategoryBtn.addEventListener('click', () => {
+            showCreateCategoryBtn.classList.add('d-none');
+            createCategoryGroup.classList.remove('d-none');
+            categoryInput.focus();
         });
 
-        cancelBtn.addEventListener('click', resetCreateForm);
+        cancelCategoryBtn.addEventListener('click', resetCategoryForm);
 
-        submitBtn.addEventListener('click', async () => {
-            const name = input.value.trim();
+        submitCategoryBtn.addEventListener('click', async () => {
+            const name = categoryInput.value.trim();
             if (!name) return;
 
-            submitBtn.disabled = true;
-            errorMsg.textContent = '';
+            submitCategoryBtn.disabled = true;
+            categoryErrorMsg.textContent = '';
 
             try {
                 const response = await csrf.fetch('/Categories/CreateQuick', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        name: name,
-                        isPublic: publicCheck.checked
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name, isPublic: categoryPublicCheck.checked })
                 });
 
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    // Add option to select
                     const option = new Option(data.category.name, data.category.id, true, true);
-                    select.add(option);
-
-                    // Add chip
-                    createChip(data.category.id, data.category.name, true);
-
-                    resetCreateForm();
+                    categorySelect.add(option);
+                    createCategoryChip(data.category.id, data.category.name, true);
+                    resetCategoryForm();
                 } else {
-                    errorMsg.textContent = data.message || 'Failed to create category.';
+                    categoryErrorMsg.textContent = data.message || 'Failed to create category.';
                 }
             } catch (e) {
                 console.error('Error creating category:', e);
-                errorMsg.textContent = 'Failed to create category. Please try again.';
+                categoryErrorMsg.textContent = 'Failed to create category. Please try again.';
             } finally {
-                submitBtn.disabled = false;
+                submitCategoryBtn.disabled = false;
             }
         });
         
-        function resetCreateForm() {
-            input.value = '';
-            publicCheck.checked = false;
-            createGroup.classList.add('d-none');
-            showCreateBtn.classList.remove('d-none');
-            errorMsg.textContent = '';
+        function resetCategoryForm() {
+            categoryInput.value = '';
+            categoryPublicCheck.checked = false;
+            createCategoryGroup.classList.add('d-none');
+            showCreateCategoryBtn.classList.remove('d-none');
+            categoryErrorMsg.textContent = '';
         }
         
-        // Allow Enter key to submit
-        input.addEventListener('keypress', (e) => {
+        categoryInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                submitBtn.click();
+                submitCategoryBtn.click();
             }
         });
+
+        // ==================== Tag Picker Logic ====================
+        const tagSelect = document.getElementById('tagSelect');
+        const tagPicker = document.getElementById('tagPicker');
+        const showCreateTagBtn = document.getElementById('showCreateTagBtn');
+        const createTagGroup = document.getElementById('createTagGroup');
+        const tagInput = document.getElementById('newTagName');
+        const cancelTagBtn = document.getElementById('cancelCreateTag');
+        const submitTagBtn = document.getElementById('submitCreateTag');
+        const tagErrorMsg = document.getElementById('createTagError');
+
+        // Render Initial Tag Chips
+        Array.from(tagSelect.options).forEach(option => {
+            createTagChip(option.value, option.text, option.selected);
+        });
+        tagPicker.appendChild(showCreateTagBtn);
+
+        function createTagChip(value, text, isSelected) {
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = `category-chip ${isSelected ? 'selected' : ''}`;
+            chip.dataset.value = value;
+            chip.innerHTML = `<i class="bi bi-check-lg"></i><i class="bi bi-tag me-1"></i>${text}`;
+            chip.setAttribute('aria-label', `Tag: ${text}${isSelected ? ', selected' : ''}`);
+
+            const toggleSelection = () => {
+                chip.classList.toggle('selected');
+                const option = tagSelect.querySelector(`option[value="${value}"]`);
+                if (option) {
+                    option.selected = chip.classList.contains('selected');
+                }
+                chip.setAttribute('aria-label', `Tag: ${text}${chip.classList.contains('selected') ? ', selected' : ''}`);
+            };
+
+            chip.addEventListener('click', toggleSelection);
+            chip.addEventListener('keydown', (e) => {
+                if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    toggleSelection();
+                }
+            });
+
+            tagPicker.insertBefore(chip, showCreateTagBtn);
+            return chip;
+        }
+
+        showCreateTagBtn.addEventListener('click', () => {
+            showCreateTagBtn.classList.add('d-none');
+            createTagGroup.classList.remove('d-none');
+            tagInput.focus();
+        });
+
+        cancelTagBtn.addEventListener('click', resetTagForm);
+
+        submitTagBtn.addEventListener('click', async () => {
+            const name = tagInput.value.trim();
+            if (!name) return;
+
+            submitTagBtn.disabled = true;
+            tagErrorMsg.textContent = '';
+
+            try {
+                const response = await csrf.fetch('/Tags/CreateQuick', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Check if tag already exists in the select
+                    const existingOption = tagSelect.querySelector(`option[value="${data.tag.id}"]`);
+                    if (!existingOption) {
+                        const option = new Option(data.tag.name, data.tag.id, true, true);
+                        tagSelect.add(option);
+                        createTagChip(data.tag.id, data.tag.name, true);
+                    } else {
+                        // Select existing option and chip
+                        existingOption.selected = true;
+                        const existingChip = tagPicker.querySelector(`[data-value="${data.tag.id}"]`);
+                        if (existingChip) existingChip.classList.add('selected');
+                    }
+                    resetTagForm();
+                } else {
+                    tagErrorMsg.textContent = data.message || 'Failed to create tag.';
+                }
+            } catch (e) {
+                console.error('Error creating tag:', e);
+                tagErrorMsg.textContent = 'Failed to create tag. Please try again.';
+            } finally {
+                submitTagBtn.disabled = false;
+            }
+        });
+        
+        function resetTagForm() {
+            tagInput.value = '';
+            createTagGroup.classList.add('d-none');
+            showCreateTagBtn.classList.remove('d-none');
+            tagErrorMsg.textContent = '';
+        }
+        
+        tagInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                submitTagBtn.click();
+            }
+        });
+
+        // ==================== AI Suggestions Logic ====================
+        const suggestBtn = document.getElementById('suggestWithAiBtn');
+        const aiSpinner = document.getElementById('aiSpinner');
+        const aiIcon = document.getElementById('aiIcon');
+        const aiButtonText = document.getElementById('aiButtonText');
+        const aiContainer = document.getElementById('aiSuggestionsContainer');
+        const aiTagsSection = document.getElementById('aiSuggestedTags');
+        const aiCategoriesSection = document.getElementById('aiSuggestedCategories');
+        const aiTagChips = document.getElementById('aiTagChips');
+        const aiCategoryChips = document.getElementById('aiCategoryChips');
+        const aiError = document.getElementById('aiError');
+        const titleInput = document.getElementById('Title');
+        const descriptionInput = document.getElementById('Description');
+
+        suggestBtn.addEventListener('click', async () => {
+            const title = titleInput.value.trim();
+            const description = descriptionInput.value.trim();
+
+            if (!title) {
+                aiError.textContent = 'Please enter a title before requesting suggestions.';
+                aiError.classList.remove('d-none');
+                return;
+            }
+
+            // Show loading state
+            suggestBtn.disabled = true;
+            aiSpinner.classList.remove('d-none');
+            aiIcon.classList.add('d-none');
+            aiButtonText.textContent = 'Analyzing...';
+            aiError.classList.add('d-none');
+            aiContainer.classList.add('d-none');
+
+            try {
+                const response = await csrf.fetch('/Bookmarks/SuggestTags', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Failed to get suggestions');
+                }
+
+                // Clear previous suggestions
+                aiTagChips.innerHTML = '';
+                aiCategoryChips.innerHTML = '';
+
+                // Render tag suggestions
+                if (data.suggestedTags && data.suggestedTags.length > 0) {
+                    aiTagsSection.classList.remove('d-none');
+                    for (const tag of data.suggestedTags) {
+                        const chip = createSuggestionChip(tag.name, tag.exists, 'tag', tag.id);
+                        aiTagChips.appendChild(chip);
+                    }
+                } else {
+                    aiTagsSection.classList.add('d-none');
+                }
+
+                // Render category suggestions
+                if (data.suggestedCategories && data.suggestedCategories.length > 0) {
+                    aiCategoriesSection.classList.remove('d-none');
+                    for (const cat of data.suggestedCategories) {
+                        const chip = createSuggestionChip(cat.name, cat.exists, 'category', cat.id);
+                        aiCategoryChips.appendChild(chip);
+                    }
+                } else {
+                    aiCategoriesSection.classList.add('d-none');
+                }
+
+                aiContainer.classList.remove('d-none');
+            } catch (e) {
+                console.error('Error getting AI suggestions:', e);
+                aiError.textContent = e.message || 'Failed to get suggestions. Please try again.';
+                aiError.classList.remove('d-none');
+            } finally {
+                suggestBtn.disabled = false;
+                aiSpinner.classList.add('d-none');
+                aiIcon.classList.remove('d-none');
+                aiButtonText.textContent = 'Suggest with AI';
+            }
+        });
+
+        function createSuggestionChip(name, exists, type, existingId) {
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'btn btn-sm btn-outline-secondary suggestion-chip me-2 mb-2';
+            chip.innerHTML = `<i class="bi bi-plus-circle me-1"></i>${name}`;
+            chip.title = exists ? `Add existing ${type}` : `Create and add ${type}`;
+
+            chip.addEventListener('click', async () => {
+                chip.disabled = true;
+
+                try {
+                    if (type === 'tag') {
+                        await addTagSuggestion(name, exists, existingId, chip);
+                    } else {
+                        await addCategorySuggestion(name, exists, existingId, chip);
+                    }
+                } catch (e) {
+                    console.error(`Error adding ${type}:`, e);
+                    chip.disabled = false;
+                }
+            });
+
+            return chip;
+        }
+
+        async function addTagSuggestion(name, exists, existingId, chip) {
+            let tagId = existingId;
+
+            if (!exists) {
+                // Create the tag first
+                const response = await csrf.fetch('/Tags/CreateQuick', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                const data = await response.json();
+                if (!data.success) throw new Error(data.message);
+                tagId = data.tag.id;
+            }
+
+            // Check if already in select
+            let option = tagSelect.querySelector(`option[value="${tagId}"]`);
+            if (!option) {
+                option = new Option(name, tagId, true, true);
+                tagSelect.add(option);
+                createTagChip(tagId, name, true);
+            } else {
+                option.selected = true;
+                const existingChip = tagPicker.querySelector(`[data-value="${tagId}"]`);
+                if (existingChip) existingChip.classList.add('selected');
+            }
+
+            // Update chip to show added state
+            chip.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i>${name}`;
+            chip.classList.remove('btn-outline-secondary');
+            chip.classList.add('btn-success');
+        }
+
+        async function addCategorySuggestion(name, exists, existingId, chip) {
+            let categoryId = existingId;
+
+            if (!exists) {
+                // Create the category first
+                const response = await csrf.fetch('/Categories/CreateQuick', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, isPublic: false })
+                });
+                const data = await response.json();
+                if (!data.success) throw new Error(data.message);
+                categoryId = data.category.id;
+            }
+
+            // Check if already in select
+            let option = categorySelect.querySelector(`option[value="${categoryId}"]`);
+            if (!option) {
+                option = new Option(name, categoryId, true, true);
+                categorySelect.add(option);
+                createCategoryChip(categoryId, name, true);
+            } else {
+                option.selected = true;
+                const existingChip = categoryPicker.querySelector(`[data-value="${categoryId}"]`);
+                if (existingChip) existingChip.classList.add('selected');
+            }
+
+            // Update chip to show added state
+            chip.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i>${name}`;
+            chip.classList.remove('btn-outline-secondary');
+            chip.classList.add('btn-success');
+        }
     });
 </script>

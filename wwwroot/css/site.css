@@ -982,6 +982,45 @@ a:focus {
 }
 
 /* ===========================
+   AI Suggestions
+   =========================== */
+
+.suggestion-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.suggestion-chip {
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.suggestion-chip:hover:not(:disabled) {
+    border-color: var(--purple-primary);
+    color: var(--purple-primary);
+}
+
+.suggestion-chip.btn-success {
+    pointer-events: none;
+}
+
+.suggestion-chip:disabled {
+    opacity: 0.7;
+}
+
+#suggestWithAiBtn {
+    transition: all 0.2s ease;
+}
+
+#suggestWithAiBtn:hover:not(:disabled) {
+    background: var(--purple-primary);
+    border-color: var(--purple-primary);
+    color: white;
+}
+
+/* ===========================
    Category Cards (Index Page)
    =========================== */
 

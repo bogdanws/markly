@@ -5,10 +5,17 @@ using markly.Data;
 using markly.Data.Entities;
 using markly.Services.Interfaces;
 using markly.Services.Implementations;
+using markly.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+// Configuration binding
+builder.Services.Configure<AnthropicSettings>(
+    builder.Configuration.GetSection(AnthropicSettings.SectionName));
+builder.Services.Configure<RateLimitingSettings>(
+    builder.Configuration.GetSection(RateLimitingSettings.SectionName));
 
 // Database configuration - PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -39,6 +46,8 @@ builder.Services.AddAutoMapper(typeof(Program));
 
 // Service Registration
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
+builder.Services.AddHttpClient<IAiSuggestionService, AnthropicSuggestionService>();
+builder.Services.AddSingleton<IRateLimitingService, InMemoryRateLimitingService>();
 
 // Cookie configuration for authentication
 builder.Services.ConfigureApplicationCookie(options =>
