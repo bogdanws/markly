@@ -1,0 +1,201 @@
+@model SearchViewModel
+@{
+    ViewData["Title"] = string.IsNullOrWhiteSpace(Model.Query) ? "Search" : $"Search: {Model.Query}";
+}
+
+<section class="py-4">
+    <div class="container">
+        @* Search Header *@
+        <div class="mb-4">
+            <h1 class="h3 mb-2">
+                <i class="bi bi-search me-2"></i>Search Bookmarks
+            </h1>
+            <p class="text-muted mb-0">Find bookmarks by title, description, category, or tags.</p>
+        </div>
+
+        @* Search Form *@
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form asp-controller="Search" asp-action="Index" method="get">
+                    <div class="row g-3">
+                        @* Main Search Input *@
+                        <div class="col-12">
+                            <label for="searchQuery" class="form-label">Search</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control form-control-lg" id="searchQuery" name="q"
+                                       value="@Model.Query" placeholder="Search by title, description, category, or tag..."
+                                       autocomplete="off">
+                            </div>
+                        </div>
+
+                        @* Category Filter *@
+                        <div class="col-md-4">
+                            <label for="categoryFilter" class="form-label">Category</label>
+                            <select class="form-select" id="categoryFilter" name="categoryId">
+                                <option value="">All Categories</option>
+                                @foreach (var category in Model.Categories)
+                                {
+                                    <option value="@category.Value" selected="@category.Selected">@category.Text</option>
+                                }
+                            </select>
+                        </div>
+
+                        @* Tag Filter *@
+                        <div class="col-md-4">
+                            <label for="tagFilter" class="form-label">Tag</label>
+                            <input type="text" class="form-control" id="tagFilter" name="tag"
+                                   value="@Model.Tag" placeholder="Filter by tag..."
+                                   list="popularTags" autocomplete="off">
+                            <datalist id="popularTags">
+                                @foreach (var popularTag in Model.PopularTags)
+                                {
+                                    <option value="@popularTag"></option>
+                                }
+                            </datalist>
+                        </div>
+
+                        @* Sort Order *@
+                        <div class="col-md-4">
+                            <label for="sortOrder" class="form-label">Sort By</label>
+                            <select class="form-select" id="sortOrder" name="sort">
+                                <option value="relevant" selected="@(Model.Sort == "relevant")">Most Relevant</option>
+                                <option value="recent" selected="@(Model.Sort == "recent")">Most Recent</option>
+                            </select>
+                        </div>
+
+                        @* Search Button *@
+                        <div class="col-12">
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search me-1"></i> Search
+                                </button>
+                                <a asp-controller="Search" asp-action="Index" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle me-1"></i> Clear Filters
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        @* Search Results *@
+        @if (Model.HasSearchCriteria)
+        {
+            <div class="mb-3">
+                <span class="text-muted">
+                    @if (Model.TotalResults == 0)
+                    {
+                        <text>No results found</text>
+                    }
+                    else if (Model.TotalResults == 1)
+                    {
+                        <text>1 result found</text>
+                    }
+                    else
+                    {
+                        <text>@Model.TotalResults results found</text>
+                    }
+                </span>
+            </div>
+
+            @if (Model.HasResults)
+            {
+                @* Results Grid *@
+                <div class="masonry-grid">
+                    @foreach (var bookmark in Model.Results)
+                    {
+                        <partial name="_BookmarkCard" model="bookmark" />
+                    }
+                </div>
+
+                @* Pagination *@
+                @if (Model.ShowPagination)
+                {
+                    <nav class="bookmark-pagination mt-5" aria-label="Search results pagination">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item @(Model.PageNumber == 1 ? "disabled" : string.Empty)">
+                                <a class="page-link" asp-controller="Search" asp-action="Index"
+                                   asp-route-q="@Model.Query"
+                                   asp-route-categoryId="@Model.CategoryId"
+                                   asp-route-tag="@Model.Tag"
+                                   asp-route-sort="@Model.Sort"
+                                   asp-route-page="@(Model.PageNumber - 1)">
+                                    <i class="bi bi-chevron-left me-1"></i> Previous
+                                </a>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    Page @Model.PageNumber of @Model.TotalPages
+                                </span>
+                            </li>
+                            <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : string.Empty)">
+                                <a class="page-link" asp-controller="Search" asp-action="Index"
+                                   asp-route-q="@Model.Query"
+                                   asp-route-categoryId="@Model.CategoryId"
+                                   asp-route-tag="@Model.Tag"
+                                   asp-route-sort="@Model.Sort"
+                                   asp-route-page="@(Model.PageNumber + 1)">
+                                    Next <i class="bi bi-chevron-right ms-1"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            }
+            else
+            {
+                @* No Results Message *@
+                <div class="text-center p-5 border rounded-4 bg-light">
+                    <div class="mb-3">
+                        <i class="bi bi-search display-4 text-muted"></i>
+                    </div>
+                    <h3 class="h5 mb-3">No bookmarks found</h3>
+                    <p class="text-muted mb-4">
+                        We couldn't find any bookmarks matching your search criteria.
+                        <br>Try adjusting your filters or using different keywords.
+                    </p>
+                    <div class="d-flex gap-2 justify-content-center flex-wrap">
+                        <a asp-controller="Search" asp-action="Index" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Clear Search
+                        </a>
+                        <a asp-controller="Bookmarks" asp-action="Create" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i> Add Bookmark
+                        </a>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            @* Initial State - No Search Yet *@
+            <div class="text-center p-5 border rounded-4 bg-light">
+                <div class="mb-3">
+                    <i class="bi bi-search display-4 text-muted"></i>
+                </div>
+                <h3 class="h5 mb-3">Start searching</h3>
+                <p class="text-muted mb-0">
+                    Enter a search term or select filters above to find bookmarks.
+                </p>
+            </div>
+
+            @* Popular Tags Section *@
+            @if (Model.PopularTags.Any())
+            {
+                <div class="mt-4">
+                    <h6 class="text-muted mb-3">Popular Tags</h6>
+                    <div class="d-flex gap-2 flex-wrap">
+                        @foreach (var tagName in Model.PopularTags.Take(10))
+                        {
+                            <a asp-controller="Search" asp-action="Index" asp-route-tag="@tagName"
+                               class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-tag me-1"></i>@tagName
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</section>
