@@ -105,9 +105,6 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# Migrations backup (optional)
-**/Migrations/**/*.Designer.cs
-
 # Sensitive data
 *.env
 *.env.*
