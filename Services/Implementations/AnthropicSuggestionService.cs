@@ -83,8 +83,10 @@ public class AnthropicSuggestionService : IAiSuggestionService
 
         return $$"""
             Analyze the following bookmark content and suggest relevant tags and categories.
-
+            
+            <bookmark>
             {{string.Join("\n", contentParts)}}
+            </bookmark>
 
             Return your suggestions in the following JSON format only, with no additional text:
             {

@@ -69,6 +69,76 @@
     <span asp-validation-for="TextContent" class="text-danger"></span>
 </div>
 
+@* AI Suggestions *@
+<div class="ai-suggestions-card mb-4">
+    <div class="ai-suggestions-card__glow"></div>
+    <div class="ai-suggestions-card__content">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="d-flex align-items-center gap-2">
+                <div class="ai-icon-wrapper">
+                    <i class="bi bi-stars"></i>
+                </div>
+                <div>
+                    <h6 class="ai-suggestions-card__title mb-0">AI Suggestions</h6>
+                    <p class="ai-suggestions-card__subtitle mb-0">Smart tag & category recommendations</p>
+                </div>
+            </div>
+            <button type="button" class="btn ai-suggest-btn" id="suggestWithAiBtn">
+                <span id="aiSpinner" class="ai-suggest-btn__spinner d-none">
+                    <span class="spinner-dot"></span>
+                    <span class="spinner-dot"></span>
+                    <span class="spinner-dot"></span>
+                </span>
+                <i class="bi bi-magic" id="aiIcon"></i>
+                <span id="aiButtonText">Suggest</span>
+            </button>
+        </div>
+
+        @* Preview State - shown before any suggestions *@
+        <div id="aiPreviewState" class="ai-preview-state">
+            <p class="ai-preview-hint">
+                <i class="bi bi-lightbulb"></i>
+                Add a title and description above, then click <strong>Suggest</strong> for AI-powered recommendations
+            </p>
+        </div>
+
+        @* Loading State *@
+        <div id="aiLoadingState" class="ai-loading-state d-none">
+            <div class="ai-loading-shimmer">
+                <div class="shimmer-chip"></div>
+                <div class="shimmer-chip"></div>
+                <div class="shimmer-chip"></div>
+            </div>
+            <p class="ai-loading-text" id="aiLoadingText">Analyzing your content...</p>
+        </div>
+
+        @* AI Suggestions Container *@
+        <div id="aiSuggestionsContainer" class="d-none" aria-live="polite" aria-atomic="true">
+            <div id="aiSuggestedTags" class="mb-3 d-none">
+                <label class="form-label fw-semibold small text-muted d-flex align-items-center gap-2">
+                    <i class="bi bi-tag"></i> Suggested Tags
+                </label>
+                <div class="suggestion-chips" id="aiTagChips">
+                    @* Chips injected by JS *@
+                </div>
+            </div>
+            <div id="aiSuggestedCategories" class="d-none">
+                <label class="form-label fw-semibold small text-muted d-flex align-items-center gap-2">
+                    <i class="bi bi-folder"></i> Suggested Categories
+                </label>
+                <div class="suggestion-chips" id="aiCategoryChips">
+                    @* Chips injected by JS *@
+                </div>
+            </div>
+        </div>
+
+        <div id="aiError" class="ai-error-state d-none">
+            <i class="bi bi-exclamation-circle"></i>
+            <span id="aiErrorText"></span>
+        </div>
+    </div>
+</div>
+
 @* Categories *@
 <div class="mb-4">
     <label class="form-label fw-semibold">Categories</label>
@@ -135,39 +205,6 @@
     </div>
     
     <span asp-validation-for="SelectedTagIds" class="text-danger"></span>
-</div>
-
-@* AI Suggestions *@
-<div class="card bg-light border-0 mb-4">
-    <div class="card-body">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6 class="card-title fw-bold mb-0"><i class="bi bi-stars me-2"></i>AI Suggestions</h6>
-            <button type="button" class="btn btn-outline-primary btn-sm" id="suggestWithAiBtn">
-                <span id="aiSpinner" class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span>
-                <i class="bi bi-magic" id="aiIcon"></i>
-                <span id="aiButtonText">Suggest with AI</span>
-            </button>
-        </div>
-        <p class="card-text text-muted small mb-3">Get AI-powered tag and category suggestions based on your title and description.</p>
-        
-        @* AI Suggestions Container *@
-        <div id="aiSuggestionsContainer" class="d-none">
-            <div id="aiSuggestedTags" class="mb-3 d-none">
-                <label class="form-label fw-semibold small text-muted">Suggested Tags</label>
-                <div class="suggestion-chips" id="aiTagChips">
-                    @* Chips injected by JS *@
-                </div>
-            </div>
-            <div id="aiSuggestedCategories" class="d-none">
-                <label class="form-label fw-semibold small text-muted">Suggested Categories</label>
-                <div class="suggestion-chips" id="aiCategoryChips">
-                    @* Chips injected by JS *@
-                </div>
-            </div>
-        </div>
-        
-        <div id="aiError" class="text-danger small d-none"></div>
-    </div>
 </div>
 
 @* Visibility Settings *@
@@ -387,22 +424,53 @@
         const aiSpinner = document.getElementById('aiSpinner');
         const aiIcon = document.getElementById('aiIcon');
         const aiButtonText = document.getElementById('aiButtonText');
+        const aiPreviewState = document.getElementById('aiPreviewState');
+        const aiLoadingState = document.getElementById('aiLoadingState');
+        const aiLoadingText = document.getElementById('aiLoadingText');
         const aiContainer = document.getElementById('aiSuggestionsContainer');
         const aiTagsSection = document.getElementById('aiSuggestedTags');
         const aiCategoriesSection = document.getElementById('aiSuggestedCategories');
         const aiTagChips = document.getElementById('aiTagChips');
         const aiCategoryChips = document.getElementById('aiCategoryChips');
         const aiError = document.getElementById('aiError');
+        const aiErrorText = document.getElementById('aiErrorText');
         const titleInput = document.getElementById('Title');
         const descriptionInput = document.getElementById('Description');
+
+        // Loading text rotation
+        const loadingMessages = [
+            'Analyzing your content...',
+            'Finding relevant tags...',
+            'Matching categories...',
+            'Almost there...'
+        ];
+        let loadingMessageIndex = 0;
+        let loadingInterval = null;
+
+        function startLoadingAnimation() {
+            loadingMessageIndex = 0;
+            aiLoadingText.textContent = loadingMessages[0];
+            loadingInterval = setInterval(() => {
+                loadingMessageIndex = (loadingMessageIndex + 1) % loadingMessages.length;
+                aiLoadingText.textContent = loadingMessages[loadingMessageIndex];
+            }, 1500);
+        }
+
+        function stopLoadingAnimation() {
+            if (loadingInterval) {
+                clearInterval(loadingInterval);
+                loadingInterval = null;
+            }
+        }
 
         suggestBtn.addEventListener('click', async () => {
             const title = titleInput.value.trim();
             const description = descriptionInput.value.trim();
 
             if (!title) {
-                aiError.textContent = 'Please enter a title before requesting suggestions.';
+                aiErrorText.textContent = 'Please enter a title before requesting suggestions.';
                 aiError.classList.remove('d-none');
+                aiPreviewState.classList.add('d-none');
                 return;
             }
 
@@ -410,9 +478,12 @@
             suggestBtn.disabled = true;
             aiSpinner.classList.remove('d-none');
             aiIcon.classList.add('d-none');
-            aiButtonText.textContent = 'Analyzing...';
+            aiButtonText.textContent = '';
             aiError.classList.add('d-none');
             aiContainer.classList.add('d-none');
+            aiPreviewState.classList.add('d-none');
+            aiLoadingState.classList.remove('d-none');
+            startLoadingAnimation();
 
             try {
                 const response = await csrf.fetch('/Bookmarks/SuggestTags', {
@@ -453,25 +524,29 @@
                     aiCategoriesSection.classList.add('d-none');
                 }
 
+                aiLoadingState.classList.add('d-none');
                 aiContainer.classList.remove('d-none');
             } catch (e) {
                 console.error('Error getting AI suggestions:', e);
-                aiError.textContent = e.message || 'Failed to get suggestions. Please try again.';
+                aiErrorText.textContent = e.message || 'Failed to get suggestions. Please try again.';
                 aiError.classList.remove('d-none');
+                aiLoadingState.classList.add('d-none');
             } finally {
+                stopLoadingAnimation();
                 suggestBtn.disabled = false;
                 aiSpinner.classList.add('d-none');
                 aiIcon.classList.remove('d-none');
-                aiButtonText.textContent = 'Suggest with AI';
+                aiButtonText.textContent = 'Suggest';
             }
         });
 
         function createSuggestionChip(name, exists, type, existingId) {
             const chip = document.createElement('button');
             chip.type = 'button';
-            chip.className = 'btn btn-sm btn-outline-secondary suggestion-chip me-2 mb-2';
-            chip.innerHTML = `<i class="bi bi-plus-circle me-1"></i>${name}`;
+            chip.className = 'suggestion-chip';
+            chip.innerHTML = `<i class="bi bi-plus-circle"></i><span>${name}</span>`;
             chip.title = exists ? `Add existing ${type}` : `Create and add ${type}`;
+            chip.setAttribute('aria-label', `Add ${type}: ${name}`);
 
             chip.addEventListener('click', async () => {
                 chip.disabled = true;
@@ -518,10 +593,9 @@
                 if (existingChip) existingChip.classList.add('selected');
             }
 
-            // Update chip to show added state
-            chip.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i>${name}`;
-            chip.classList.remove('btn-outline-secondary');
-            chip.classList.add('btn-success');
+            // Update chip to show added state with animation
+            chip.innerHTML = `<i class="bi bi-check-circle-fill"></i><span>${name}</span>`;
+            chip.classList.add('suggestion-chip--added');
         }
 
         async function addCategorySuggestion(name, exists, existingId, chip) {
@@ -551,10 +625,9 @@
                 if (existingChip) existingChip.classList.add('selected');
             }
 
-            // Update chip to show added state
-            chip.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i>${name}`;
-            chip.classList.remove('btn-outline-secondary');
-            chip.classList.add('btn-success');
+            // Update chip to show added state with animation
+            chip.innerHTML = `<i class="bi bi-check-circle-fill"></i><span>${name}</span>`;
+            chip.classList.add('suggestion-chip--added');
         }
     });
 </script>
