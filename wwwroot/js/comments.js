@@ -245,9 +245,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    async function deleteComment(commentItem) {
-        if (!confirm('Are you sure you want to delete this comment?')) return;
+    function deleteComment(commentItem) {
+        showConfirmModal({
+            title: 'Delete Comment',
+            message: 'Are you sure you want to delete this comment?',
+            detail: 'This action cannot be undone.',
+            confirmText: 'Delete',
+            onConfirm: () => performDelete(commentItem)
+        });
+    }
 
+    async function performDelete(commentItem) {
         const commentId = parseInt(commentItem.dataset.commentId);
         const deleteBtn = commentItem.querySelector('.delete-comment-btn');
         deleteBtn.disabled = true;
@@ -355,12 +363,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             </div>
         `;
-    }
-
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
     }
 
     function showToast(message, type = 'info') {

@@ -1639,20 +1639,20 @@ a:focus {
 }
 
 .comment-actions {
+    display: flex;
+    gap: 0.25rem;
     opacity: 0;
     transition: opacity 0.2s ease;
 }
 
+.comment-actions .btn {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.9rem;
+    line-height: 1.3;
+}
+
 .comment-item:hover .comment-actions {
     opacity: 1;
-}
-
-.comment-actions .btn-link {
-    text-decoration: none;
-}
-
-.comment-actions .btn-link:hover {
-    opacity: 0.8;
 }
 
 .comment-text {
