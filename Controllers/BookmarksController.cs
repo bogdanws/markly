@@ -203,6 +203,8 @@ public class BookmarksController : Controller
     {
         var bookmark = await _context.Bookmarks
             .Include(b => b.User)
+            .Include(b => b.Comments)
+                .ThenInclude(c => c.User)
             .AsNoTracking()
             .FirstOrDefaultAsync(b => b.Id == id);
 
@@ -216,6 +218,9 @@ public class BookmarksController : Controller
         {
             return NotFound();
         }
+
+        var currentUser = await _userManager.GetUserAsync(User);
+        ViewData["CurrentUserProfilePictureUrl"] = currentUser?.ProfilePictureUrl;
 
         var model = BuildDetailsViewModel(bookmark, currentUserId);
         return View(model);
@@ -280,7 +285,21 @@ public class BookmarksController : Controller
             IsPublic = bookmark.IsPublic,
             AuthorName = UserHelper.GetAuthorName(bookmark.User),
             CanEdit = IsOwner(bookmark, currentUserId),
-            MediaContent = media
+            MediaContent = media,
+            Comments = bookmark.Comments
+                .OrderByDescending(c => c.CreatedAt)
+                .Select(c => new CommentDto
+                {
+                    Id = c.Id,
+                    Content = c.Content,
+                    AuthorName = UserHelper.GetAuthorName(c.User),
+                    AuthorUserName = c.User != null ? c.User.UserName ?? string.Empty : string.Empty,
+                    AuthorProfilePictureUrl = c.User?.ProfilePictureUrl,
+                    CreatedAt = c.CreatedAt,
+                    UpdatedAt = c.UpdatedAt,
+                    IsOwner = !string.IsNullOrEmpty(currentUserId) && c.UserId == currentUserId
+                })
+                .ToList()
         };
     }
 

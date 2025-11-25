@@ -1,0 +1,62 @@
+@model markly.ViewModels.CommentDto
+
+<div class="comment-item card border-0 shadow-sm mb-3" data-comment-id="@Model.Id">
+    <div class="card-body">
+        <div class="d-flex gap-3">
+            <a asp-controller="Profile" asp-action="Index" asp-route-username="@Model.AuthorUserName" class="comment-item__avatar flex-shrink-0 text-decoration-none">
+                @if (!string.IsNullOrEmpty(Model.AuthorProfilePictureUrl))
+                {
+                    <img src="@Model.AuthorProfilePictureUrl" alt="@Model.AuthorName" class="comment-avatar-img" />
+                }
+                else
+                {
+                    <div class="comment-avatar-placeholder">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                }
+            </a>
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <a asp-controller="Profile" asp-action="Index" asp-route-username="@Model.AuthorUserName" class="fw-semibold text-dark text-decoration-none comment-author-link">@Model.AuthorName</a>
+                        <small class="text-muted ms-2">
+                            @Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, HH:mm")
+                            @if (Model.UpdatedAt.HasValue)
+                            {
+                                <span class="fst-italic">(edited)</span>
+                            }
+                        </small>
+                    </div>
+                    @if (Model.IsOwner)
+                    {
+                        <div class="comment-actions">
+                            <button class="btn btn-sm btn-outline-secondary edit-comment-btn"
+                                    title="Edit comment" aria-label="Edit comment">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-comment-btn"
+                                    title="Delete comment" aria-label="Delete comment">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    }
+                </div>
+
+                <div class="comment-content">
+                    <p class="mb-0 text-break comment-text">@Model.Content</p>
+                </div>
+
+                @if (Model.IsOwner)
+                {
+                    <div class="comment-edit-form d-none">
+                        <textarea class="form-control mb-2 edit-textarea" rows="3" maxlength="2000">@Model.Content</textarea>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-sm btn-light cancel-edit-btn">Cancel</button>
+                            <button type="button" class="btn btn-sm btn-primary save-edit-btn">Save</button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,21 @@
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="mb-0 text-white" id="confirmModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <span id="confirmModalTitle">Confirm</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="lead mb-2" id="confirmModalMessage">Are you sure?</p>
+                <p class="text-muted mb-0" id="confirmModalDetail"></p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="confirmModalCancelBtn">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmModalConfirmBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>

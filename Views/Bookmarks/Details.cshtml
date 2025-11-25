@@ -97,4 +97,14 @@
             </div>
         </div>
     </div>
+
+    @{
+        ViewData["BookmarkId"] = Model.Id;
+        ViewData["IsAuthenticated"] = User.Identity?.IsAuthenticated ?? false;
+    }
+    <partial name="_CommentsSection" model="Model.Comments" />
 </section>
+
+@section Scripts {
+    <script src="~/js/comments.js" asp-append-version="true"></script>
+}
