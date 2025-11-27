@@ -205,6 +205,7 @@ public class BookmarksController : Controller
             .Include(b => b.User)
             .Include(b => b.Comments)
                 .ThenInclude(c => c.User)
+            .Include(b => b.Votes)
             .AsNoTracking()
             .FirstOrDefaultAsync(b => b.Id == id);
 
@@ -286,6 +287,8 @@ public class BookmarksController : Controller
             AuthorName = UserHelper.GetAuthorName(bookmark.User),
             CanEdit = IsOwner(bookmark, currentUserId),
             MediaContent = media,
+            VoteCount = bookmark.Votes?.Count ?? 0,
+            IsLikedByCurrentUser = !string.IsNullOrEmpty(currentUserId) && (bookmark.Votes?.Any(v => v.UserId == currentUserId) ?? false),
             Comments = bookmark.Comments
                 .OrderByDescending(c => c.CreatedAt)
                 .Select(c => new CommentDto

@@ -22,4 +22,5 @@ public class BookmarkListItemViewModel
     public string? MediaImageUrl { get; set; }
     public string? MediaTextPreview { get; set; }
     public bool IsPrivate { get; set; }
+    public bool IsLikedByCurrentUser { get; set; }
 }

@@ -14,4 +14,6 @@ public class BookmarkDetailsViewModel
     public bool CanEdit { get; set; }
     public BookmarkMediaContent MediaContent { get; set; } = new();
     public List<CommentDto> Comments { get; set; } = new();
+    public int VoteCount { get; set; }
+    public bool IsLikedByCurrentUser { get; set; }
 }

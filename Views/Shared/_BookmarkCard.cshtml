@@ -36,9 +36,12 @@
                 </div>
             </div>
             <div class="bookmark-card__stats">
-                <span>
-                    <i class="bi bi-heart-fill text-danger me-1"></i>@Model.VoteCount
-                </span>
+                <button type="button" class="vote-btn"
+                        data-bookmark-id="@Model.Id"
+                        data-liked="@Model.IsLikedByCurrentUser.ToString().ToLower()">
+                    <i class="bi @(Model.IsLikedByCurrentUser ? "bi-heart-fill" : "bi-heart")"></i>
+                    <span class="vote-count">@Model.VoteCount</span>
+                </button>
             </div>
         </div>
     </article>

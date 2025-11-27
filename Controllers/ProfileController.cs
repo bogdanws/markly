@@ -35,8 +35,9 @@ public class ProfileController : Controller
             return NotFound();
         }
 
-        var isOwner = User.Identity?.IsAuthenticated == true && 
+        var isOwner = User.Identity?.IsAuthenticated == true &&
                         string.Equals(User.Identity.Name, username, StringComparison.OrdinalIgnoreCase);
+        var currentUserId = _userManager.GetUserId(User);
 
         var rawBookmarks = await _context.Bookmarks
             .Where(b => b.UserId == user.Id && (b.IsPublic || isOwner))
@@ -51,7 +52,8 @@ public class ProfileController : Controller
                 b.CreatedAt,
                 VoteCount = b.Votes.Count,
                 b.Content,
-                b.IsPublic
+                b.IsPublic,
+                IsLikedByCurrentUser = currentUserId != null && b.Votes.Any(v => v.UserId == currentUserId)
             })
             .ToListAsync();
 
@@ -68,7 +70,8 @@ public class ProfileController : Controller
                 VoteCount = b.VoteCount,
                 MediaImageUrl = media.ImageUrl,
                 MediaTextPreview = Helpers.UserHelper.BuildTextPreview(media.TextContent),
-                IsPrivate = !b.IsPublic
+                IsPrivate = !b.IsPublic,
+                IsLikedByCurrentUser = b.IsLikedByCurrentUser
             };
         }).ToList();
 
