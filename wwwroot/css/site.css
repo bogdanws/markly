@@ -595,30 +595,35 @@ p {
     border-color: var(--purple-primary);
 }
 
-/* Masonry Grid */
+/* Masonry Grid - Horizontal First (JS-powered) */
 .masonry-grid {
-    column-count: 1;
-    column-gap: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
-@media (min-width: 768px) {
-    .masonry-grid {
-        column-count: 2;
-    }
-}
-
-@media (min-width: 1200px) {
-    .masonry-grid {
-        column-count: 3;
-    }
-}
-
-/* Fix items inside masonry */
+/* Items styled for JS absolute positioning (multi-column) */
 .masonry-grid > .col {
     display: block;
     width: 100%;
-    break-inside: avoid;
-    margin-bottom: 1.5rem;
+}
+
+/* Single column fallback (mobile) - natural flow */
+@media (max-width: 767px) {
+    .masonry-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        position: static !important;
+        height: auto !important;
+    }
+
+    .masonry-grid > .col {
+        position: static !important;
+        width: 100% !important;
+        left: auto !important;
+        top: auto !important;
+    }
 }
 
 .bookmark-card {
@@ -915,11 +920,9 @@ a:focus {
     font-size: 0.9rem;
 }
 
-/* Profile Page Masonry Override */
-@media (min-width: 1200px) {
-    .masonry-grid-profile {
-        column-count: 2;
-    }
+/* Profile Page Masonry Override - max 2 columns */
+.masonry-grid-profile {
+    --masonry-max-columns: 2;
 }
 
 /* Category Picker */
