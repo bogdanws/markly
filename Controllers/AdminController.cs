@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using markly.Data;
 using markly.Data.Entities;
+using markly.Helpers;
 using markly.ViewModels.Admin;
 
 namespace markly.Controllers;
@@ -33,41 +34,39 @@ public class AdminController : Controller
         var totalCategories = await _context.Categories.CountAsync();
         var totalUsers = await _userManager.Users.CountAsync();
 
-        var recentBookmarks = await _context.Bookmarks
+        var recentBookmarksRaw = await _context.Bookmarks
             .Include(b => b.User)
             .OrderByDescending(b => b.CreatedAt)
             .Take(5)
-            .Select(b => new AdminBookmarkItemViewModel
-            {
-                Id = b.Id,
-                Title = b.Title,
-                AuthorName = b.User != null
-                    ? (!string.IsNullOrEmpty(b.User.FirstName) ? $"{b.User.FirstName} {b.User.LastName}".Trim() : b.User.UserName ?? "Unknown")
-                    : "Unknown",
-                AuthorUserName = b.User != null ? b.User.UserName ?? "" : "",
-                CreatedAt = b.CreatedAt,
-                IsPublic = b.IsPublic
-            })
             .ToListAsync();
 
-        var recentComments = await _context.Comments
+        var recentBookmarks = recentBookmarksRaw.Select(b => new AdminBookmarkItemViewModel
+        {
+            Id = b.Id,
+            Title = b.Title,
+            AuthorName = UserHelper.GetAuthorName(b.User),
+            AuthorUserName = b.User?.UserName ?? "",
+            CreatedAt = b.CreatedAt,
+            IsPublic = b.IsPublic
+        }).ToList();
+
+        var recentCommentsRaw = await _context.Comments
             .Include(c => c.User)
             .Include(c => c.Bookmark)
             .OrderByDescending(c => c.CreatedAt)
             .Take(5)
-            .Select(c => new AdminCommentItemViewModel
-            {
-                Id = c.Id,
-                Content = c.Content.Length > 100 ? c.Content.Substring(0, 100) + "..." : c.Content,
-                AuthorName = c.User != null
-                    ? (!string.IsNullOrEmpty(c.User.FirstName) ? $"{c.User.FirstName} {c.User.LastName}".Trim() : c.User.UserName ?? "Unknown")
-                    : "Unknown",
-                AuthorUserName = c.User != null ? c.User.UserName ?? "" : "",
-                BookmarkId = c.BookmarkId,
-                BookmarkTitle = c.Bookmark != null ? c.Bookmark.Title : "Deleted Bookmark",
-                CreatedAt = c.CreatedAt
-            })
             .ToListAsync();
+
+        var recentComments = recentCommentsRaw.Select(c => new AdminCommentItemViewModel
+        {
+            Id = c.Id,
+            Content = c.Content.Length > 100 ? c.Content.Substring(0, 100) + "..." : c.Content,
+            AuthorName = UserHelper.GetAuthorName(c.User),
+            AuthorUserName = c.User?.UserName ?? "",
+            BookmarkId = c.BookmarkId,
+            BookmarkTitle = c.Bookmark?.Title ?? "Deleted Bookmark",
+            CreatedAt = c.CreatedAt
+        }).ToList();
 
         var model = new AdminDashboardViewModel
         {
@@ -94,30 +93,30 @@ public class AdminController : Controller
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            query = query.Where(b => b.Title.Contains(search) || b.Description.Contains(search));
+            var pattern = $"%{search}%";
+            query = query.Where(b => EF.Functions.ILike(b.Title, pattern) || EF.Functions.ILike(b.Description, pattern));
         }
 
         var totalItems = await query.CountAsync();
         var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
-        var bookmarks = await query
+        var bookmarksRaw = await query
             .OrderByDescending(b => b.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(b => new AdminBookmarkItemViewModel
-            {
-                Id = b.Id,
-                Title = b.Title,
-                Description = b.Description.Length > 150 ? b.Description.Substring(0, 150) + "..." : b.Description,
-                AuthorName = b.User != null
-                    ? (!string.IsNullOrEmpty(b.User.FirstName) ? $"{b.User.FirstName} {b.User.LastName}".Trim() : b.User.UserName ?? "Unknown")
-                    : "Unknown",
-                AuthorUserName = b.User != null ? b.User.UserName ?? "" : "",
-                CreatedAt = b.CreatedAt,
-                IsPublic = b.IsPublic,
-                CommentCount = b.Comments.Count
-            })
             .ToListAsync();
+
+        var bookmarks = bookmarksRaw.Select(b => new AdminBookmarkItemViewModel
+        {
+            Id = b.Id,
+            Title = b.Title,
+            Description = b.Description.Length > 150 ? b.Description.Substring(0, 150) + "..." : b.Description,
+            AuthorName = UserHelper.GetAuthorName(b.User),
+            AuthorUserName = b.User?.UserName ?? "",
+            CreatedAt = b.CreatedAt,
+            IsPublic = b.IsPublic,
+            CommentCount = b.Comments.Count
+        }).ToList();
 
         var model = new AdminBookmarksViewModel
         {
@@ -165,29 +164,28 @@ public class AdminController : Controller
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            query = query.Where(c => c.Content.Contains(search));
+            query = query.Where(c => EF.Functions.ILike(c.Content, $"%{search}%"));
         }
 
         var totalItems = await query.CountAsync();
         var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
-        var comments = await query
+        var commentsRaw = await query
             .OrderByDescending(c => c.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(c => new AdminCommentItemViewModel
-            {
-                Id = c.Id,
-                Content = c.Content,
-                AuthorName = c.User != null
-                    ? (!string.IsNullOrEmpty(c.User.FirstName) ? $"{c.User.FirstName} {c.User.LastName}".Trim() : c.User.UserName ?? "Unknown")
-                    : "Unknown",
-                AuthorUserName = c.User != null ? c.User.UserName ?? "" : "",
-                BookmarkId = c.BookmarkId,
-                BookmarkTitle = c.Bookmark != null ? c.Bookmark.Title : "Deleted Bookmark",
-                CreatedAt = c.CreatedAt
-            })
             .ToListAsync();
+
+        var comments = commentsRaw.Select(c => new AdminCommentItemViewModel
+        {
+            Id = c.Id,
+            Content = c.Content,
+            AuthorName = UserHelper.GetAuthorName(c.User),
+            AuthorUserName = c.User?.UserName ?? "",
+            BookmarkId = c.BookmarkId,
+            BookmarkTitle = c.Bookmark?.Title ?? "Deleted Bookmark",
+            CreatedAt = c.CreatedAt
+        }).ToList();
 
         var model = new AdminCommentsViewModel
         {
@@ -234,30 +232,29 @@ public class AdminController : Controller
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            query = query.Where(c => c.Name.Contains(search));
+            query = query.Where(c => EF.Functions.ILike(c.Name, $"%{search}%"));
         }
 
         var totalItems = await query.CountAsync();
         var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
-        var categories = await query
+        var categoriesRaw = await query
             .OrderByDescending(c => c.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(c => new AdminCategoryItemViewModel
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Description = c.Description,
-                OwnerName = c.User != null
-                    ? (!string.IsNullOrEmpty(c.User.FirstName) ? $"{c.User.FirstName} {c.User.LastName}".Trim() : c.User.UserName ?? "Unknown")
-                    : "Unknown",
-                OwnerUserName = c.User != null ? c.User.UserName ?? "" : "",
-                CreatedAt = c.CreatedAt,
-                IsPublic = c.IsPublic,
-                BookmarkCount = c.BookmarkCategories.Count
-            })
             .ToListAsync();
+
+        var categories = categoriesRaw.Select(c => new AdminCategoryItemViewModel
+        {
+            Id = c.Id,
+            Name = c.Name,
+            Description = c.Description,
+            OwnerName = UserHelper.GetAuthorName(c.User),
+            OwnerUserName = c.User?.UserName ?? "",
+            CreatedAt = c.CreatedAt,
+            IsPublic = c.IsPublic,
+            BookmarkCount = c.BookmarkCategories.Count
+        }).ToList();
 
         var model = new AdminCategoriesViewModel
         {

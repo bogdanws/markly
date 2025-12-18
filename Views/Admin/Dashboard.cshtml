@@ -1,6 +1,7 @@
 @model markly.ViewModels.Admin.AdminDashboardViewModel
 @{
     ViewData["Title"] = "Admin Dashboard";
+    ViewData["AdminActivePage"] = "Dashboard";
 }
 
 <div class="admin-page">
@@ -16,24 +17,7 @@
                     <h1 class="admin-title mb-1">Dashboard</h1>
                     <p class="admin-subtitle mb-0">Monitor and manage your platform content</p>
                 </div>
-                <div class="admin-nav">
-                    <a href="@Url.Action("Dashboard", "Admin")" class="admin-nav-item active">
-                        <i class="bi bi-grid-1x2"></i>
-                        <span>Overview</span>
-                    </a>
-                    <a href="@Url.Action("Bookmarks", "Admin")" class="admin-nav-item">
-                        <i class="bi bi-bookmark"></i>
-                        <span>Bookmarks</span>
-                    </a>
-                    <a href="@Url.Action("Comments", "Admin")" class="admin-nav-item">
-                        <i class="bi bi-chat-left-text"></i>
-                        <span>Comments</span>
-                    </a>
-                    <a href="@Url.Action("Categories", "Admin")" class="admin-nav-item">
-                        <i class="bi bi-folder"></i>
-                        <span>Categories</span>
-                    </a>
-                </div>
+                @await Html.PartialAsync("_AdminNav")
             </div>
         </div>
     </div>
