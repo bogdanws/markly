@@ -31,7 +31,7 @@
                         <i class="bi bi-bookmark-fill"></i>
                     </div>
                     <div class="admin-stat-content">
-                        <span class="admin-stat-value">@Model.TotalBookmarks.ToString("N0")</span>
+                        <span class="admin-stat-value" data-count="@Model.TotalBookmarks">0</span>
                         <span class="admin-stat-label">Bookmarks</span>
                     </div>
                     <a href="@Url.Action("Bookmarks", "Admin")" class="stretched-link"></a>
@@ -43,7 +43,7 @@
                         <i class="bi bi-chat-left-text-fill"></i>
                     </div>
                     <div class="admin-stat-content">
-                        <span class="admin-stat-value">@Model.TotalComments.ToString("N0")</span>
+                        <span class="admin-stat-value" data-count="@Model.TotalComments">0</span>
                         <span class="admin-stat-label">Comments</span>
                     </div>
                     <a href="@Url.Action("Comments", "Admin")" class="stretched-link"></a>
@@ -55,7 +55,7 @@
                         <i class="bi bi-folder-fill"></i>
                     </div>
                     <div class="admin-stat-content">
-                        <span class="admin-stat-value">@Model.TotalCategories.ToString("N0")</span>
+                        <span class="admin-stat-value" data-count="@Model.TotalCategories">0</span>
                         <span class="admin-stat-label">Categories</span>
                     </div>
                     <a href="@Url.Action("Categories", "Admin")" class="stretched-link"></a>
@@ -67,7 +67,7 @@
                         <i class="bi bi-people-fill"></i>
                     </div>
                     <div class="admin-stat-content">
-                        <span class="admin-stat-value">@Model.TotalUsers.ToString("N0")</span>
+                        <span class="admin-stat-value" data-count="@Model.TotalUsers">0</span>
                         <span class="admin-stat-label">Users</span>
                     </div>
                 </div>
