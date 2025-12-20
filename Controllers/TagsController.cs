@@ -148,8 +148,9 @@ public class TagsController : Controller
 
     private static string NormalizeName(string name)
     {
-        // Convert to lowercase, trim, replace spaces with hyphens
-        return name.Trim().ToLower().Replace(" ", "-");
+        // Convert to lowercase, trim, collapse multiple spaces, replace spaces with hyphens
+        var normalized = System.Text.RegularExpressions.Regex.Replace(name.Trim().ToLower(), @"\s+", " ");
+        return normalized.Replace(" ", "-");
     }
 
     private static string? ValidateTagName(string? name)
@@ -171,10 +172,10 @@ public class TagsController : Controller
             return "Tag name is too short (min 2 characters).";
         }
 
-        // Only allow alphanumeric and hyphens
-        if (!System.Text.RegularExpressions.Regex.IsMatch(normalizedName, @"^[a-z0-9\-]+$"))
+        // Only allow alphanumeric and hyphens (no consecutive, leading, or trailing hyphens)
+        if (!System.Text.RegularExpressions.Regex.IsMatch(normalizedName, @"^[a-z0-9]+(-[a-z0-9]+)*$"))
         {
-            return "Tag name can only contain letters, numbers, and hyphens.";
+            return "Tag name can only contain letters, numbers, and hyphens (no leading, trailing, or consecutive hyphens).";
         }
 
         return null;

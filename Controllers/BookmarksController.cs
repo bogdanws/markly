@@ -419,7 +419,12 @@ public class BookmarksController : Controller
             return BadRequest(new { success = false, error = "Title is required for suggestions." });
         }
 
-        var result = await _aiSuggestionService.GetSuggestionsAsync(request.Title, request.Description);
+        // Limit description length to prevent excessive API token usage
+        var description = request.Description?.Length > 500
+            ? request.Description[..500]
+            : request.Description;
+
+        var result = await _aiSuggestionService.GetSuggestionsAsync(request.Title, description);
 
         if (!result.Success)
         {
