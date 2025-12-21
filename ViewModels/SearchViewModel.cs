@@ -1,12 +1,9 @@
-using Microsoft.AspNetCore.Mvc.Rendering;
-
 namespace markly.ViewModels;
 
 public class SearchViewModel
 {
     // Search criteria
     public string? Query { get; set; }
-    public int? CategoryId { get; set; }
     public string? Tag { get; set; }
     public string Sort { get; set; } = "relevant";
 
@@ -21,9 +18,8 @@ public class SearchViewModel
     // Helper properties
     public bool HasResults => Results.Count > 0;
     public bool ShowPagination => TotalPages > 1;
-    public bool HasSearchCriteria => !string.IsNullOrWhiteSpace(Query) || CategoryId.HasValue || !string.IsNullOrWhiteSpace(Tag);
+    public bool HasSearchCriteria => !string.IsNullOrWhiteSpace(Query) || !string.IsNullOrWhiteSpace(Tag);
 
-    // Filter data for dropdowns
-    public IEnumerable<SelectListItem> Categories { get; set; } = Enumerable.Empty<SelectListItem>();
+    // Filter data
     public IEnumerable<string> PopularTags { get; set; } = Enumerable.Empty<string>();
 }

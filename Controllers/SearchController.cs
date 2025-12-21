@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using markly.Data;
 using markly.Helpers;
@@ -23,7 +22,7 @@ public class SearchController : Controller
     }
 
     [AllowAnonymous]
-    public async Task<IActionResult> Index(string? q, int? categoryId, string? tag, string? sort, int page = 1)
+    public async Task<IActionResult> Index(string? q, string? tag, string? sort, int page = 1)
     {
         var pageNumber = page < 1 ? 1 : page;
         var normalizedSort = NormalizeSort(sort);
@@ -31,8 +30,6 @@ public class SearchController : Controller
         // Base query - only public bookmarks
         var bookmarksQuery = _context.Bookmarks
             .AsNoTracking()
-            .Include(b => b.BookmarkCategories)
-                .ThenInclude(bc => bc.Category)
             .Include(b => b.BookmarkTags)
                 .ThenInclude(bt => bt.Tag)
             .Where(b => b.IsPublic);
@@ -44,15 +41,7 @@ public class SearchController : Controller
             bookmarksQuery = bookmarksQuery.Where(b =>
                 EF.Functions.ILike(b.Title, searchPattern) ||
                 EF.Functions.ILike(b.Description, searchPattern) ||
-                b.BookmarkCategories.Any(bc => EF.Functions.ILike(bc.Category.Name, searchPattern)) ||
                 b.BookmarkTags.Any(bt => EF.Functions.ILike(bt.Tag.Name, searchPattern)));
-        }
-
-        // Filter by category
-        if (categoryId.HasValue)
-        {
-            bookmarksQuery = bookmarksQuery.Where(b =>
-                b.BookmarkCategories.Any(bc => bc.CategoryId == categoryId.Value));
         }
 
         // Filter by tag (partial match)
@@ -106,19 +95,6 @@ public class SearchController : Controller
             };
         }).ToList();
 
-        // Load categories for dropdown
-        var categories = await _context.Categories
-            .AsNoTracking()
-            .Where(c => c.IsPublic)
-            .OrderBy(c => c.Name)
-            .Select(c => new SelectListItem
-            {
-                Value = c.Id.ToString(),
-                Text = c.Name,
-                Selected = c.Id == categoryId
-            })
-            .ToListAsync();
-
         // Load popular tags for suggestions
         var popularTags = await _context.Tags
             .AsNoTracking()
@@ -131,14 +107,12 @@ public class SearchController : Controller
         var model = new SearchViewModel
         {
             Query = q,
-            CategoryId = categoryId,
             Tag = tag,
             Sort = normalizedSort,
             Results = bookmarkItems,
             PageNumber = pageNumber,
             TotalPages = totalPages,
             TotalResults = totalCount,
-            Categories = categories,
             PopularTags = popularTags
         };
 
