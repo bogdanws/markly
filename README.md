@@ -75,6 +75,14 @@ The application uses Claude 4.5 Haiku for AI-powered tag and category suggestion
 
 ### Running the Application
 
+#### Option 1: Local Development
+
+**Tip:** You can use Docker to run just the PostgreSQL database while developing locally:
+```bash
+docker compose up -d postgres
+```
+This avoids needing to install PostgreSQL locally. The connection string in `appsettings.Development.json` is already configured to work with this setup.
+
 1. **Apply database migrations:**
    ```bash
    dotnet ef database update
@@ -86,6 +94,48 @@ The application uses Claude 4.5 Haiku for AI-powered tag and category suggestion
    ```
 
 3. **Access the application** at `https://localhost:5001` or `http://localhost:5000`
+
+#### Default Test Accounts (Seed Data)
+
+The database is automatically seeded with sample data and test accounts:
+
+| Email | Password | Role | Name |
+|-------|----------|------|------|
+| `admin@markly.com` | `Admin123!` | Admin | Alex Morgan |
+| `sarah@example.com` | `Sarah123!` | User | Sarah Chen |
+| `mike@example.com` | `Mike1234!` | User | Michael Johnson |
+
+These accounts come with sample bookmarks, categories, tags, comments, and votes. The seed data only runs on an empty database.
+
+#### Option 2: Docker
+
+1. **Configure environment variables** in `docker-compose.yml`:
+   ```yaml
+   environment:
+     Anthropic__ApiKey: your_anthropic_api_key_here
+   ```
+
+2. **Start all services** (PostgreSQL, app, and Caddy reverse proxy):
+   ```bash
+   docker compose up -d
+   ```
+
+3. **Access the application** at `http://localhost` (port 80) or `https://localhost` (port 443)
+
+4. **View logs:**
+   ```bash
+   docker compose logs -f markly
+   ```
+
+5. **Stop all services:**
+   ```bash
+   docker compose down
+   ```
+
+The Docker setup includes:
+- **PostgreSQL** database (data persisted in a Docker volume)
+- **Markly app** with automatic database migrations on startup
+- **Caddy** reverse proxy with automatic HTTPS
 
 ## Using AI Suggestions
 
