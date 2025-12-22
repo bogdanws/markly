@@ -1,0 +1,50 @@
+@model SearchViewModel
+
+@if (Model.TrendingSearches.Any() || Model.PopularTags.Any())
+{
+    <div class="search-suggestions">
+        @if (Model.TrendingSearches.Any())
+        {
+            <div class="suggestion-group">
+                <h6 class="suggestion-group-title">
+                    <i class="bi bi-graph-up-arrow me-1"></i>Trending
+                </h6>
+                <div class="suggestion-pills">
+                    @foreach (var trending in Model.TrendingSearches)
+                    {
+                        <a asp-controller="Search" asp-action="Index" asp-route-q="@trending.Query"
+                           class="suggestion-pill">
+                            @trending.Query
+                            <span class="suggestion-pill-count">@trending.ResultCount</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (Model.PopularTags.Any())
+        {
+            <div class="suggestion-group">
+                <h6 class="suggestion-group-title">
+                    <i class="bi bi-tags me-1"></i>Popular Tags
+                </h6>
+                <div class="suggestion-pills">
+                    @foreach (var tagName in Model.PopularTags.Take(12))
+                    {
+                        <a asp-controller="Search" asp-action="Index" asp-route-tag="@tagName"
+                           class="suggestion-pill">
+                            @tagName
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-search display-6 mb-3 d-block opacity-50"></i>
+        <p class="mb-0">Enter a search term or select filters to find bookmarks.</p>
+    </div>
+}

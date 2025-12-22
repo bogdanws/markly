@@ -12,6 +12,6 @@ public class CategoryDetailsViewModel
     public string OwnerId { get; set; } = string.Empty;
     public string OwnerName { get; set; } = string.Empty;
     public bool IsOwner { get; set; }
-    
+
     public IReadOnlyList<BookmarkListItemViewModel> Bookmarks { get; set; } = Array.Empty<BookmarkListItemViewModel>();
 }

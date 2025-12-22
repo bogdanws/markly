@@ -17,6 +17,6 @@ public class EditProfileViewModel
 
     [Display(Name = "Profile Picture")]
     public IFormFile? ProfilePicture { get; set; }
-    
+
     public string? CurrentProfilePictureUrl { get; set; }
 }
