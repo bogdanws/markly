@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using markly.Data;
@@ -15,17 +16,23 @@ public class HomeController : Controller
 
     private readonly ILogger<HomeController> _logger;
     private readonly ApplicationDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public HomeController(ILogger<HomeController> logger, ApplicationDbContext context)
+    public HomeController(
+        ILogger<HomeController> logger,
+        ApplicationDbContext context,
+        UserManager<ApplicationUser> userManager)
     {
         _logger = logger;
         _context = context;
+        _userManager = userManager;
     }
 
     public async Task<IActionResult> Index(string? filter, int page = 1)
     {
         var normalizedFilter = NormalizeFilter(filter);
         var pageNumber = page < 1 ? 1 : page;
+        var currentUserId = _userManager.GetUserId(User);
 
         var bookmarksQuery = _context.Bookmarks
             .AsNoTracking()
@@ -40,7 +47,8 @@ public class HomeController : Controller
             {
                 Bookmark = b,
                 User = b.User,
-                VoteCount = b.Votes.Count
+                VoteCount = b.Votes.Count,
+                IsLikedByCurrentUser = currentUserId != null && b.Votes.Any(v => v.UserId == currentUserId)
             });
 
         projectedQuery = normalizedFilter == "popular"
@@ -65,7 +73,8 @@ public class HomeController : Controller
                 CreatedAt = b.CreatedAt,
                 VoteCount = item.VoteCount,
                 MediaImageUrl = media.ImageUrl,
-                MediaTextPreview = UserHelper.BuildTextPreview(media.TextContent, 160)
+                MediaTextPreview = UserHelper.BuildTextPreview(media.TextContent, 160),
+                IsLikedByCurrentUser = item.IsLikedByCurrentUser
             };
         }).ToList();
 
