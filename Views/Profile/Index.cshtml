@@ -23,9 +23,9 @@
                         }
                         else
                         {
-                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center shadow-sm bg-white text-primary border" 
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center shadow-sm bg-white text-primary border"
                                 style="width: 120px; height: 120px; font-size: 3rem; border-width: 4px !important;">
-                                @(Model.Username?.Length > 0 ? Model.Username.Substring(0, 1).ToUpper() : "U")
+                                @(Model.FirstName?.Length > 0 ? Model.FirstName.Substring(0, 1).ToUpper() : "U")
                             </div>
                         }
                     </div>
