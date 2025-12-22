@@ -2999,3 +2999,74 @@ a:focus {
         display: none;
     }
 }
+
+/* ===========================
+   Infinite Scroll
+   =========================== */
+
+.infinite-scroll-trigger {
+    padding: 2rem 0;
+    display: flex;
+    justify-content: center;
+}
+
+.infinite-scroll-loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.loader-dots {
+    display: flex;
+    gap: 6px;
+}
+
+.loader-dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--purple-primary);
+    animation: dotBounce 1.4s ease-in-out infinite;
+}
+
+.loader-dots span:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.loader-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.loader-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes dotBounce {
+    0%, 80%, 100% {
+        transform: scale(0.6);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.end-of-results {
+    position: relative;
+}
+
+.end-of-results-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gray-300), transparent);
+}
+
+.end-of-results-text {
+    position: relative;
+    background: var(--gray-50);
+    padding: 0 1rem;
+}

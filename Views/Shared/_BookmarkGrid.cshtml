@@ -2,10 +2,29 @@
 
 @if (Model.HasBookmarks)
 {
-    <div class="masonry-grid">
-        @foreach (var bookmark in Model.Bookmarks)
+    <div id="bookmarkFeedContainer"
+         data-page="@Model.PageNumber"
+         data-total-pages="@Model.TotalPages"
+         data-filter="@Model.ActiveFilter">
+        <div class="masonry-grid" id="bookmarkGrid">
+            @foreach (var bookmark in Model.Bookmarks)
+            {
+                <partial name="_BookmarkCard" model="bookmark" />
+            }
+        </div>
+
+        @if (Model.PageNumber < Model.TotalPages)
         {
-            <partial name="_BookmarkCard" model="bookmark" />
+            <div class="infinite-scroll-trigger" id="infiniteScrollTrigger">
+                <div class="infinite-scroll-loader">
+                    <div class="loader-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="text-muted small mt-2">Loading more...</span>
+                </div>
+            </div>
         }
     </div>
 }
@@ -18,29 +37,4 @@ else
             <i class="bi bi-plus-circle me-1"></i> Add Bookmark
         </a>
     </div>
-}
-
-@if (Model.ShowPagination)
-{
-    <nav class="bookmark-pagination mt-5" aria-label="Bookmark pagination">
-        <ul class="pagination justify-content-center">
-            <li class="page-item @(Model.PageNumber == 1 ? "disabled" : string.Empty)">
-                <a class="page-link" asp-controller="Home" asp-action="Index"
-                   asp-route-filter="@Model.ActiveFilter" asp-route-page="@(Model.PageNumber - 1)">
-                    Previous
-                </a>
-            </li>
-            <li class="page-item disabled">
-                <span class="page-link">
-                    Page @Model.PageNumber of @Model.TotalPages
-                </span>
-            </li>
-            <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : string.Empty)">
-                <a class="page-link" asp-controller="Home" asp-action="Index"
-                   asp-route-filter="@Model.ActiveFilter" asp-route-page="@(Model.PageNumber + 1)">
-                    Next
-                </a>
-            </li>
-        </ul>
-    </nav>
 }

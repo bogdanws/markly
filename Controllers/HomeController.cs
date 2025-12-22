@@ -30,6 +30,18 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Index(string? filter, int page = 1)
     {
+        var model = await GetBookmarksAsync(filter, page);
+        return View(model);
+    }
+
+    public async Task<IActionResult> Feed(string? filter, int page = 1)
+    {
+        var model = await GetBookmarksAsync(filter, page);
+        return PartialView("_BookmarkFeed", model);
+    }
+
+    private async Task<HomeIndexViewModel> GetBookmarksAsync(string? filter, int page)
+    {
         var normalizedFilter = NormalizeFilter(filter);
         var pageNumber = page < 1 ? 1 : page;
         var currentUserId = _userManager.GetUserId(User);
@@ -78,15 +90,13 @@ public class HomeController : Controller
             };
         }).ToList();
 
-        var model = new HomeIndexViewModel
+        return new HomeIndexViewModel
         {
             ActiveFilter = normalizedFilter,
             Bookmarks = bookmarkItems,
             PageNumber = pageNumber,
             TotalPages = totalPages
         };
-
-        return View(model);
     }
 
     public IActionResult Privacy()

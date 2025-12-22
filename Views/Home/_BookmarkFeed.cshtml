@@ -1,0 +1,12 @@
+@model HomeIndexViewModel
+
+<div id="feedContent"
+     data-page="@Model.PageNumber"
+     data-total-pages="@Model.TotalPages"
+     data-filter="@Model.ActiveFilter">
+
+    @foreach (var bookmark in Model.Bookmarks)
+    {
+        <partial name="_BookmarkCard" model="bookmark" />
+    }
+</div>
