@@ -1,3 +1,6 @@
 markly.pwnfield.space {
+    basicauth {
+        markly $2b$12$zl6TqSjATn14AfM/dBFglOxf5cTUaaqSfUQuo20FZQr.go8rqH22y
+    }
     reverse_proxy markly:8080
 }
