@@ -10,4 +10,5 @@ echo "Running EF migrations..."
 dotnet ef database update --project /src/markly.csproj --startup-project /src/markly.csproj
 
 echo "Starting app..."
-exec dotnet /app/publish/markly.dll
+cd /app/publish
+exec dotnet markly.dll
