@@ -39,6 +39,7 @@ builder.Services.AddAutoMapper(typeof(Program));
 
 // Service Registration
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
+builder.Services.AddScoped<IDataSeeder, DataSeeder>();
 
 // Cookie configuration for authentication
 builder.Services.ConfigureApplicationCookie(options =>
@@ -65,7 +66,7 @@ builder.Services.AddControllersWithViews()
 
 var app = builder.Build();
 
-// Seed roles
+// Seed roles and database with initial data
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -78,6 +79,9 @@ using (var scope = app.Services.CreateScope())
             await roleManager.CreateAsync(new IdentityRole(role));
         }
     }
+
+    var seeder = scope.ServiceProvider.GetRequiredService<IDataSeeder>();
+    await seeder.SeedAsync();
 }
 
 // Configure the HTTP request pipeline.
