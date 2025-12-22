@@ -1,0 +1,3 @@
+markly.pwnfield.space {
+    reverse_proxy markly:8080
+}
