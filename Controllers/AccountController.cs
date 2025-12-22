@@ -213,6 +213,12 @@ public class AccountController : Controller
         return RedirectToAction(nameof(Manage));
     }
 
+    [HttpGet]
+    public IActionResult AccessDenied()
+    {
+        return View();
+    }
+
     private IActionResult RedirectToLocal(string? returnUrl)
     {
         if (Url.IsLocalUrl(returnUrl))

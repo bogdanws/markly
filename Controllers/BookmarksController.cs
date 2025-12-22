@@ -8,6 +8,7 @@ using markly.Data.Entities;
 using markly.Helpers;
 using markly.Models;
 using markly.ViewModels;
+using markly.Services.Interfaces;
 
 namespace markly.Controllers;
 
@@ -16,15 +17,21 @@ public class BookmarksController : Controller
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<BookmarksController> _logger;
+    private readonly IAiSuggestionService _aiSuggestionService;
+    private readonly IRateLimitingService _rateLimitingService;
 
     public BookmarksController(
         ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
-        ILogger<BookmarksController> logger)
+        ILogger<BookmarksController> logger,
+        IAiSuggestionService aiSuggestionService,
+        IRateLimitingService rateLimitingService)
     {
         _context = context;
         _userManager = userManager;
         _logger = logger;
+        _aiSuggestionService = aiSuggestionService;
+        _rateLimitingService = rateLimitingService;
     }
 
     [Authorize]
@@ -36,6 +43,7 @@ public class BookmarksController : Controller
 
         var model = new BookmarkFormViewModel();
         await LoadCategories(model, user.Id);
+        await LoadTags(model);
         return View(model);
     }
 
@@ -50,6 +58,7 @@ public class BookmarksController : Controller
         if (!ModelState.IsValid)
         {
             await LoadCategories(model, user.Id);
+            await LoadTags(model);
             return View(model);
         }
 
@@ -69,6 +78,9 @@ public class BookmarksController : Controller
         // Add Categories
         await UpdateBookmarkCategories(bookmark, model.SelectedCategoryIds, user.Id);
 
+        // Add Tags
+        await UpdateBookmarkTags(bookmark, model.SelectedTagIds);
+
         TempData["SuccessMessage"] = "Bookmark created successfully.";
         return RedirectToAction(nameof(Details), new { id = bookmark.Id });
     }
@@ -79,6 +91,7 @@ public class BookmarksController : Controller
     {
         var bookmark = await _context.Bookmarks
             .Include(b => b.BookmarkCategories)
+            .Include(b => b.BookmarkTags)
             .AsNoTracking()
             .FirstOrDefaultAsync(b => b.Id == id);
 
@@ -95,9 +108,10 @@ public class BookmarksController : Controller
 
         var media = BookmarkMediaContent.FromJson(bookmark.Content);
         var model = BuildFormViewModel(bookmark, media);
-        
-        // Load categories
+
+        // Load categories and tags
         await LoadCategories(model, currentUserId!);
+        await LoadTags(model);
 
         return View(model);
     }
@@ -118,11 +132,13 @@ public class BookmarksController : Controller
         if (!ModelState.IsValid)
         {
             await LoadCategories(model, user.Id);
+            await LoadTags(model);
             return View(model);
         }
 
         var bookmark = await _context.Bookmarks
             .Include(b => b.BookmarkCategories)
+            .Include(b => b.BookmarkTags)
             .FirstOrDefaultAsync(b => b.Id == id);
 
         if (bookmark == null)
@@ -144,6 +160,10 @@ public class BookmarksController : Controller
         // Update Categories
         _context.BookmarkCategories.RemoveRange(bookmark.BookmarkCategories);
         await UpdateBookmarkCategories(bookmark, model.SelectedCategoryIds, user.Id);
+
+        // Update Tags
+        _context.BookmarkTags.RemoveRange(bookmark.BookmarkTags);
+        await UpdateBookmarkTags(bookmark, model.SelectedTagIds);
 
         TempData["SuccessMessage"] = "Bookmark updated successfully.";
         return RedirectToAction(nameof(Details), new { id = bookmark.Id });
@@ -243,6 +263,21 @@ public class BookmarksController : Controller
         }).ToList();
     }
 
+    private async Task LoadTags(BookmarkFormViewModel model)
+    {
+        var tags = await _context.Tags
+            .OrderBy(t => t.Name)
+            .Select(t => new { t.Id, t.Name })
+            .ToListAsync();
+
+        model.AvailableTags = tags.Select(t => new SelectListItem
+        {
+            Value = t.Id.ToString(),
+            Text = t.Name,
+            Selected = model.SelectedTagIds.Contains(t.Id)
+        }).ToList();
+    }
+
     private static bool IsOwner(Bookmark bookmark, string? userId)
     {
         return !string.IsNullOrEmpty(userId) && bookmark.UserId == userId;
@@ -250,11 +285,20 @@ public class BookmarksController : Controller
 
     private static BookmarkMediaContent BuildMediaContent(BookmarkFormViewModel model)
     {
+        var videoUrl = string.IsNullOrWhiteSpace(model.VideoUrl) ? null : model.VideoUrl.Trim();
+        var imageUrl = string.IsNullOrWhiteSpace(model.ImageUrl) ? null : model.ImageUrl.Trim();
+
+        // Auto-apply video thumbnail if no image is set
+        if (imageUrl == null && videoUrl != null)
+        {
+            imageUrl = BookmarkMediaContent.GetVideoThumbnailUrl(videoUrl);
+        }
+
         return new BookmarkMediaContent
         {
             TextContent = string.IsNullOrWhiteSpace(model.TextContent) ? null : model.TextContent.Trim(),
-            ImageUrl = string.IsNullOrWhiteSpace(model.ImageUrl) ? null : model.ImageUrl.Trim(),
-            VideoUrl = string.IsNullOrWhiteSpace(model.VideoUrl) ? null : model.VideoUrl.Trim()
+            ImageUrl = imageUrl,
+            VideoUrl = videoUrl
         };
     }
 
@@ -269,7 +313,8 @@ public class BookmarksController : Controller
             TextContent = media.TextContent,
             ImageUrl = media.ImageUrl,
             VideoUrl = media.VideoUrl,
-            SelectedCategoryIds = bookmark.BookmarkCategories.Select(bc => bc.CategoryId).ToList()
+            SelectedCategoryIds = bookmark.BookmarkCategories.Select(bc => bc.CategoryId).ToList(),
+            SelectedTagIds = bookmark.BookmarkTags.Select(bt => bt.TagId).ToList()
         };
     }
 
@@ -330,4 +375,108 @@ public class BookmarksController : Controller
 
         await _context.SaveChangesAsync();
     }
+
+    private async Task UpdateBookmarkTags(Bookmark bookmark, List<int> tagIds)
+    {
+        if (!tagIds.Any())
+        {
+            return;
+        }
+
+        var validTagIds = await _context.Tags
+            .Where(t => tagIds.Contains(t.Id))
+            .Select(t => t.Id)
+            .ToListAsync();
+
+        foreach (var tagId in validTagIds)
+        {
+            _context.BookmarkTags.Add(new BookmarkTag
+            {
+                BookmarkId = bookmark.Id,
+                TagId = tagId
+            });
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    #region AI Suggestions
+
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SuggestTags([FromBody] SuggestTagsRequest request)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return Unauthorized(new { success = false, error = "User not authenticated." });
+        }
+
+        // Rate limiting check
+        var canProceed = await _rateLimitingService.TryAcquireAsync(user.Id, "SuggestTags");
+        if (!canProceed)
+        {
+            var waitTime = await _rateLimitingService.GetTimeUntilNextAllowedAsync(user.Id, "SuggestTags");
+            var waitSeconds = waitTime?.TotalSeconds ?? 60;
+            return StatusCode(429, new
+            {
+                success = false,
+                error = $"Rate limit exceeded. Please wait {Math.Ceiling(waitSeconds)} seconds before trying again."
+            });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Title))
+        {
+            return BadRequest(new { success = false, error = "Title is required for suggestions." });
+        }
+
+        // Limit description length to prevent excessive API token usage
+        var description = request.Description?.Length > 500
+            ? request.Description[..500]
+            : request.Description;
+
+        var result = await _aiSuggestionService.GetSuggestionsAsync(request.Title, description);
+
+        if (!result.Success)
+        {
+            return StatusCode(500, new { success = false, error = result.ErrorMessage });
+        }
+
+        // Look up existing tags and categories that match suggestions
+        var existingTags = await _context.Tags
+            .Where(t => result.SuggestedTags.Select(s => s.ToLower()).Contains(t.Name.ToLower()))
+            .Select(t => new { t.Id, t.Name })
+            .ToListAsync();
+
+        var existingCategories = await _context.Categories
+            .Where(c => c.UserId == user.Id && result.SuggestedCategories.Select(s => s.ToLower()).Contains(c.Name.ToLower()))
+            .Select(c => new { c.Id, c.Name })
+            .ToListAsync();
+
+        return Ok(new
+        {
+            success = true,
+            suggestedTags = result.SuggestedTags.Select(tagName => new
+            {
+                name = tagName,
+                id = existingTags.FirstOrDefault(t => t.Name.Equals(tagName, StringComparison.OrdinalIgnoreCase))?.Id,
+                exists = existingTags.Any(t => t.Name.Equals(tagName, StringComparison.OrdinalIgnoreCase))
+            }),
+            suggestedCategories = result.SuggestedCategories.Select(catName => new
+            {
+                name = catName,
+                id = existingCategories.FirstOrDefault(c => c.Name.Equals(catName, StringComparison.OrdinalIgnoreCase))?.Id,
+                exists = existingCategories.Any(c => c.Name.Equals(catName, StringComparison.OrdinalIgnoreCase))
+            })
+        });
+    }
+
+    public class SuggestTagsRequest
+    {
+        public string Title { get; set; } = string.Empty;
+        public string? Description { get; set; }
+    }
+
+    #endregion
 }

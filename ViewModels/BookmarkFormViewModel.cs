@@ -35,4 +35,10 @@ public class BookmarkFormViewModel
 
     [ValidateNever]
     public IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> AvailableCategories { get; set; } = new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
+
+    [Display(Name = "Tags")]
+    public List<int> SelectedTagIds { get; set; } = new List<int>();
+
+    [ValidateNever]
+    public IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> AvailableTags { get; set; } = new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>();
 }

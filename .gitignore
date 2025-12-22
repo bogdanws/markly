@@ -84,7 +84,6 @@ local.settings.json
 
 # User secrets (for development)
 appsettings.*.json
-!appsettings.json
 !appsettings.Development.json
 
 # Database files

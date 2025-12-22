@@ -109,8 +109,8 @@ public class CategoriesController : Controller
             .Select(bc => bc.Bookmark)
             .OrderByDescending(b => b.CreatedAt)
             .ToListAsync();
-            
-        var bookmarks = bookmarksRaw.Select(b => 
+
+        var bookmarks = bookmarksRaw.Select(b =>
         {
             var media = BookmarkMediaContent.FromJson(b.Content);
             return new BookmarkListItemViewModel

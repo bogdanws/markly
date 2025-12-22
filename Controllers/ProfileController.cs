@@ -145,7 +145,7 @@ public class ProfileController : Controller
                 return View(model);
             }
 
-            try 
+            try
             {
                 newProfilePicturePath = await _fileStorage.SaveFileAsync(model.ProfilePicture, "images/profiles");
                 user.ProfilePictureUrl = "/" + newProfilePicturePath;
@@ -175,7 +175,7 @@ public class ProfileController : Controller
             {
                 ModelState.AddModelError(string.Empty, error.Description);
             }
-            
+
             // Restore original URL for view logic if needed
             model.CurrentProfilePictureUrl = oldProfilePictureUrl;
             return View(model);
