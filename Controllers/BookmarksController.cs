@@ -95,7 +95,7 @@ public class BookmarksController : Controller
 
         var media = BookmarkMediaContent.FromJson(bookmark.Content);
         var model = BuildFormViewModel(bookmark, media);
-        
+
         // Load categories
         await LoadCategories(model, currentUserId!);
 
