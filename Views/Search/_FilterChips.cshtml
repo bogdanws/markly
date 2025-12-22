@@ -1,0 +1,69 @@
+@model SearchViewModel
+
+@if (Model.HasActiveFilters)
+{
+    <div class="filter-chips mb-4" id="filterChips">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="text-muted small me-1">Active filters:</span>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Tag))
+            {
+                <span class="filter-chip">
+                    <i class="bi bi-tag me-1"></i>@Model.Tag
+                    <button type="button" class="filter-chip-remove" data-filter="tag" title="Remove filter">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </span>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.DateRange))
+            {
+                var dateLabel = Model.DateRange switch
+                {
+                    "day" => "Last 24 Hours",
+                    "week" => "Last Week",
+                    "month" => "Last Month",
+                    "year" => "Last Year",
+                    _ => Model.DateRange
+                };
+                <span class="filter-chip">
+                    <i class="bi bi-calendar me-1"></i>@dateLabel
+                    <button type="button" class="filter-chip-remove" data-filter="dateRange" title="Remove filter">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </span>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.Author))
+            {
+                <span class="filter-chip">
+                    <i class="bi bi-person me-1"></i>@Model.Author
+                    <button type="button" class="filter-chip-remove" data-filter="author" title="Remove filter">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </span>
+            }
+
+            @if (Model.MinVotes.HasValue)
+            {
+                <span class="filter-chip">
+                    <i class="bi bi-heart me-1"></i>@Model.MinVotes+ votes
+                    <button type="button" class="filter-chip-remove" data-filter="minVotes" title="Remove filter">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </span>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.ContentType))
+            {
+                var contentLabel = Model.ContentType == "image" ? "With Image" : "With Text";
+                <span class="filter-chip">
+                    <i class="bi bi-@(Model.ContentType == "image" ? "image" : "file-text") me-1"></i>@contentLabel
+                    <button type="button" class="filter-chip-remove" data-filter="contentType" title="Remove filter">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </span>
+            }
+        </div>
+    </div>
+}

@@ -1,0 +1,155 @@
+@model SearchViewModel
+
+<div class="card search-card shadow-sm mb-4">
+    <div class="card-body">
+        <form id="searchForm" asp-controller="Search" asp-action="Index" method="get">
+            <div class="row g-3">
+                @* Main Search Input *@
+                <div class="col-12">
+                    <label for="searchQuery" class="form-label">Search</label>
+                    <div class="input-group input-group-lg search-input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" id="searchQuery" name="q"
+                               value="@Model.Query" placeholder="Search by title, description, or tag..."
+                               autocomplete="off" autofocus>
+                        <button type="button" class="btn btn-outline-secondary search-clear-btn @(string.IsNullOrWhiteSpace(Model.Query) ? "d-none" : "")"
+                                id="clearQueryBtn" title="Clear search">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                @* Basic Filters Row *@
+                <div class="col-md-6 col-lg-3">
+                    <label for="tagFilter" class="form-label">Tag</label>
+                    <input type="text" class="form-control" id="tagFilter" name="tag"
+                           value="@Model.Tag" placeholder="Filter by tag..."
+                           list="popularTags" autocomplete="off">
+                    <datalist id="popularTags">
+                        @foreach (var popularTag in Model.PopularTags)
+                        {
+                            <option value="@popularTag"></option>
+                        }
+                    </datalist>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <label for="sortOrder" class="form-label">Sort By</label>
+                    <select class="form-select" id="sortOrder" name="sort">
+                        @if (Model.Sort == "relevant")
+                        {
+                            <option value="relevant" selected>Most Relevant</option>
+                            <option value="recent">Most Recent</option>
+                        }
+                        else
+                        {
+                            <option value="relevant">Most Relevant</option>
+                            <option value="recent" selected>Most Recent</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <label for="dateRange" class="form-label">Date Range</label>
+                    <select class="form-select" id="dateRange" name="dateRange">
+                        @{
+                            var dateRangeOptions = new[] {
+                                ("", "All Time"),
+                                ("day", "Last 24 Hours"),
+                                ("week", "Last Week"),
+                                ("month", "Last Month"),
+                                ("year", "Last Year")
+                            };
+                            foreach (var (value, label) in dateRangeOptions)
+                            {
+                                if ((string.IsNullOrEmpty(Model.DateRange) && value == "") || Model.DateRange == value)
+                                {
+                                    <option value="@value" selected>@label</option>
+                                }
+                                else
+                                {
+                                    <option value="@value">@label</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <label for="contentType" class="form-label">Content Type</label>
+                    <select class="form-select" id="contentType" name="contentType">
+                        @{
+                            var contentTypeOptions = new[] {
+                                ("", "All Types"),
+                                ("image", "With Image"),
+                                ("text", "With Text")
+                            };
+                            foreach (var (value, label) in contentTypeOptions)
+                            {
+                                if ((string.IsNullOrEmpty(Model.ContentType) && value == "") || Model.ContentType == value)
+                                {
+                                    <option value="@value" selected>@label</option>
+                                }
+                                else
+                                {
+                                    <option value="@value">@label</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+
+                @* Advanced Filters (collapsible) *@
+                <div class="col-12">
+                    <button class="btn btn-link p-0 text-decoration-none advanced-filters-toggle"
+                            type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters"
+                            aria-expanded="@(Model.HasActiveFilters && (!string.IsNullOrEmpty(Model.Author) || Model.MinVotes.HasValue) ? "true" : "false")">
+                        <i class="bi bi-sliders me-1"></i>
+                        <span>Advanced Filters</span>
+                        <i class="bi bi-chevron-down ms-1 collapse-icon"></i>
+                    </button>
+                </div>
+
+                <div class="collapse @((!string.IsNullOrEmpty(Model.Author) || Model.MinVotes.HasValue) ? "show" : "")" id="advancedFilters">
+                    <div class="row g-3 pt-2">
+                        <div class="col-md-6">
+                            <label for="authorFilter" class="form-label">Author</label>
+                            <input type="text" class="form-control" id="authorFilter" name="author"
+                                   value="@Model.Author" placeholder="Filter by author..."
+                                   list="authorsList" autocomplete="off">
+                            <datalist id="authorsList">
+                                @foreach (var authorName in Model.Authors)
+                                {
+                                    <option value="@authorName"></option>
+                                }
+                            </datalist>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="minVotes" class="form-label">Minimum Votes</label>
+                            <input type="number" class="form-control" id="minVotes" name="minVotes"
+                                   value="@Model.MinVotes" placeholder="e.g., 5" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                @* Search Actions *@
+                <div class="col-12">
+                    <div class="d-flex gap-2 flex-wrap align-items-center">
+                        <button type="submit" class="btn btn-primary" id="searchBtn">
+                            <i class="bi bi-search me-1"></i> Search
+                        </button>
+                        <a asp-controller="Search" asp-action="Index" class="btn btn-outline-secondary" id="clearAllBtn">
+                            <i class="bi bi-x-circle me-1"></i> Clear All
+                        </a>
+                        <div class="search-loading-indicator ms-2 d-none">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">Searching...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

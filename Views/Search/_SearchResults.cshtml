@@ -1,0 +1,142 @@
+@model SearchViewModel
+
+<div id="searchResultsContent"
+     data-page="@Model.PageNumber"
+     data-total-pages="@Model.TotalPages"
+     data-total-results="@Model.TotalResults">
+
+    @* Results Header with Count *@
+    <div class="search-results-header mb-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="results-count-wrapper">
+                @if (Model.TotalResults == 0)
+                {
+                    <span class="text-muted">No results found</span>
+                }
+                else
+                {
+                    <span class="results-count">
+                        <span class="results-count-number" data-count="@Model.TotalResults">@Model.TotalResults</span>
+                        <span class="text-muted">@(Model.TotalResults == 1 ? "result" : "results") found</span>
+                    </span>
+                }
+            </div>
+            @if (Model.HasResults && Model.TotalPages > 1)
+            {
+                <span class="text-muted small">
+                    Showing @((Model.PageNumber - 1) * 10 + 1)-@(Math.Min(Model.PageNumber * 10, Model.TotalResults)) of @Model.TotalResults
+                </span>
+            }
+        </div>
+    </div>
+
+    @if (Model.HasResults)
+    {
+        @* Results Grid *@
+        <div class="masonry-grid search-results-grid" id="resultsGrid">
+            @foreach (var bookmark in Model.Results)
+            {
+                <partial name="_BookmarkCard" model="bookmark" />
+            }
+        </div>
+
+        @* Infinite Scroll Trigger *@
+        @if (Model.PageNumber < Model.TotalPages)
+        {
+            <div class="infinite-scroll-trigger" id="infiniteScrollTrigger">
+                <div class="infinite-scroll-loader">
+                    <div class="loader-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="text-muted small mt-2">Loading more...</span>
+                </div>
+            </div>
+        }
+        else if (Model.TotalResults > 10)
+        {
+            <div class="end-of-results text-center py-4">
+                <div class="end-of-results-line"></div>
+                <span class="end-of-results-text text-muted small">
+                    <i class="bi bi-check-circle me-1"></i>You've seen all @Model.TotalResults results
+                </span>
+            </div>
+        }
+    }
+    else
+    {
+        @* Enhanced Empty State *@
+        <div class="search-empty-state">
+            <div class="empty-state-card">
+                <div class="empty-state-icon">
+                    <div class="empty-state-icon-bg"></div>
+                    <i class="bi bi-search"></i>
+                    <div class="empty-state-icon-pulse"></div>
+                </div>
+
+                <h3 class="empty-state-title">No bookmarks found</h3>
+                <p class="empty-state-description">
+                    We couldn't find any bookmarks matching your criteria.
+                </p>
+
+                @* Contextual suggestions based on active filters *@
+                <div class="empty-state-suggestions">
+                    <p class="suggestion-label">Try these:</p>
+                    <ul class="suggestion-list">
+                        @if (!string.IsNullOrWhiteSpace(Model.Query))
+                        {
+                            <li>
+                                <i class="bi bi-lightbulb"></i>
+                                <span>Check for typos in "<strong>@Model.Query</strong>"</span>
+                            </li>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(Model.DateRange))
+                        {
+                            <li class="suggestion-actionable" data-filter="dateRange">
+                                <i class="bi bi-calendar-x"></i>
+                                Remove the date filter
+                                <button type="button" class="btn btn-sm btn-link p-0 ms-1 remove-filter-btn" data-filter="dateRange">
+                                    Remove
+                                </button>
+                            </li>
+                        }
+                        @if (Model.MinVotes.HasValue)
+                        {
+                            <li class="suggestion-actionable" data-filter="minVotes">
+                                <i class="bi bi-heart"></i>
+                                Lower the minimum votes requirement
+                                <button type="button" class="btn btn-sm btn-link p-0 ms-1 remove-filter-btn" data-filter="minVotes">
+                                    Remove
+                                </button>
+                            </li>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(Model.Author))
+                        {
+                            <li class="suggestion-actionable" data-filter="author">
+                                <i class="bi bi-person-x"></i>
+                                Remove the author filter
+                                <button type="button" class="btn btn-sm btn-link p-0 ms-1 remove-filter-btn" data-filter="author">
+                                    Remove
+                                </button>
+                            </li>
+                        }
+                        <li>
+                            <i class="bi bi-arrow-repeat"></i>
+                            Use fewer or different keywords
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="empty-state-actions">
+                    <button type="button" class="btn btn-outline-primary btn-clear-search" id="clearSearchBtn">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Clear All Filters
+                    </button>
+                    <a asp-controller="Bookmarks" asp-action="Create" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i> Add Bookmark
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

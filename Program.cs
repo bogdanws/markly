@@ -46,6 +46,7 @@ builder.Services.AddAutoMapper(typeof(Program));
 
 // Service Registration
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
+builder.Services.AddScoped<IDataSeeder, DataSeeder>();
 builder.Services.AddHttpClient<IAiSuggestionService, AnthropicSuggestionService>();
 builder.Services.AddSingleton<IRateLimitingService, InMemoryRateLimitingService>();
 
@@ -73,6 +74,24 @@ builder.Services.AddControllersWithViews()
     });
 
 var app = builder.Build();
+
+// Seed roles and database with initial data
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var roles = new[] { "Admin", "User" };
+
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new IdentityRole(role));
+        }
+    }
+
+    var seeder = scope.ServiceProvider.GetRequiredService<IDataSeeder>();
+    await seeder.SeedAsync();
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

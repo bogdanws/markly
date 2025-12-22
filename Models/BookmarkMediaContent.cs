@@ -76,4 +76,31 @@ public class BookmarkMediaContent
         // Return null for unrecognized patterns to prevent XSS/clickjacking attacks
         return null;
     }
+
+    /// <summary>
+    /// Extracts the thumbnail URL from a YouTube or Vimeo video URL.
+    /// </summary>
+    public static string? GetVideoThumbnailUrl(string? source)
+    {
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            return null;
+        }
+
+        var url = source.Trim();
+
+        var youtube = Regex.Match(url, @"(?:youtu\.be/|youtube\.com/(?:watch\?v=|embed/|v/))([A-Za-z0-9_-]{11})");
+        if (youtube.Success)
+        {
+            return $"https://img.youtube.com/vi/{youtube.Groups[1].Value}/hqdefault.jpg";
+        }
+
+        var vimeo = Regex.Match(url, @"vimeo\.com/(?:.*/)?(\d+)");
+        if (vimeo.Success)
+        {
+            return $"https://vumbnail.com/{vimeo.Groups[1].Value}.jpg";
+        }
+
+        return null;
+    }
 }
