@@ -39,6 +39,7 @@ builder.Services.AddAutoMapper(typeof(Program));
 
 // Service Registration
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
+builder.Services.AddScoped<IDataSeeder, DataSeeder>();
 
 // Cookie configuration for authentication
 builder.Services.ConfigureApplicationCookie(options =>
@@ -64,6 +65,13 @@ builder.Services.AddControllersWithViews()
     });
 
 var app = builder.Build();
+
+// Seed database with initial data
+using (var scope = app.Services.CreateScope())
+{
+    var seeder = scope.ServiceProvider.GetRequiredService<IDataSeeder>();
+    await seeder.SeedAsync();
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
