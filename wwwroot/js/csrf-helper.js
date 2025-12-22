@@ -12,22 +12,26 @@ window.csrf = {
         if (this.token) return this.token;
 
         // Check if token exists in cookie
-        const cookieToken = document.cookie
+        const cookieRow = document.cookie
             .split('; ')
-            .find(row => row.startsWith('XSRF-TOKEN='))
-            ?.split('=')[1];
+            .find(row => row.startsWith('XSRF-TOKEN='));
 
-        if (cookieToken) {
+        if (cookieRow) {
+            // URL-decode the token as ASP.NET Core may encode special characters
+            const cookieToken = decodeURIComponent(cookieRow.split('=')[1]);
             this.token = cookieToken;
             return cookieToken;
         }
 
         // Fetch token from server
         await fetch('/antiforgery/token');
-        this.token = document.cookie
+        const newCookieRow = document.cookie
             .split('; ')
-            .find(row => row.startsWith('XSRF-TOKEN='))
-            ?.split('=')[1];
+            .find(row => row.startsWith('XSRF-TOKEN='));
+
+        if (newCookieRow) {
+            this.token = decodeURIComponent(newCookieRow.split('=')[1]);
+        }
 
         return this.token;
     },
