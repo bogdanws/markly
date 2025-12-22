@@ -249,11 +249,20 @@ public class BookmarksController : Controller
 
     private static BookmarkMediaContent BuildMediaContent(BookmarkFormViewModel model)
     {
+        var videoUrl = string.IsNullOrWhiteSpace(model.VideoUrl) ? null : model.VideoUrl.Trim();
+        var imageUrl = string.IsNullOrWhiteSpace(model.ImageUrl) ? null : model.ImageUrl.Trim();
+
+        // Auto-apply video thumbnail if no image is set
+        if (imageUrl == null && videoUrl != null)
+        {
+            imageUrl = BookmarkMediaContent.GetVideoThumbnailUrl(videoUrl);
+        }
+
         return new BookmarkMediaContent
         {
             TextContent = string.IsNullOrWhiteSpace(model.TextContent) ? null : model.TextContent.Trim(),
-            ImageUrl = string.IsNullOrWhiteSpace(model.ImageUrl) ? null : model.ImageUrl.Trim(),
-            VideoUrl = string.IsNullOrWhiteSpace(model.VideoUrl) ? null : model.VideoUrl.Trim()
+            ImageUrl = imageUrl,
+            VideoUrl = videoUrl
         };
     }
 
