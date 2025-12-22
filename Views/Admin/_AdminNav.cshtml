@@ -1,0 +1,22 @@
+@{
+    var activePage = ViewData["AdminActivePage"] as string ?? "Dashboard";
+}
+
+<div class="admin-nav">
+    <a href="@Url.Action("Dashboard", "Admin")" class="admin-nav-item @(activePage == "Dashboard" ? "active" : "")">
+        <i class="bi bi-grid-1x2"></i>
+        <span>Overview</span>
+    </a>
+    <a href="@Url.Action("Bookmarks", "Admin")" class="admin-nav-item @(activePage == "Bookmarks" ? "active" : "")">
+        <i class="bi bi-bookmark"></i>
+        <span>Bookmarks</span>
+    </a>
+    <a href="@Url.Action("Comments", "Admin")" class="admin-nav-item @(activePage == "Comments" ? "active" : "")">
+        <i class="bi bi-chat-left-text"></i>
+        <span>Comments</span>
+    </a>
+    <a href="@Url.Action("Categories", "Admin")" class="admin-nav-item @(activePage == "Categories" ? "active" : "")">
+        <i class="bi bi-folder"></i>
+        <span>Categories</span>
+    </a>
+</div>

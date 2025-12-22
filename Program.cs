@@ -66,9 +66,20 @@ builder.Services.AddControllersWithViews()
 
 var app = builder.Build();
 
-// Seed database with initial data
+// Seed roles and database with initial data
 using (var scope = app.Services.CreateScope())
 {
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var roles = new[] { "Admin", "User" };
+
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new IdentityRole(role));
+        }
+    }
+
     var seeder = scope.ServiceProvider.GetRequiredService<IDataSeeder>();
     await seeder.SeedAsync();
 }
