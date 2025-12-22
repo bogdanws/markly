@@ -12,6 +12,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const commentsList = document.getElementById('commentsList');
     const commentCountBadge = document.getElementById('commentCount');
 
+    function getAvatarInitial(name) {
+        const trimmed = (name || '').trim();
+        return trimmed ? trimmed[0].toUpperCase() : 'U';
+    }
+
     // Expand/Collapse composer
     function expandComposer() {
         if (!commentComposer) return;
@@ -310,7 +315,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const profileUrl = `/Profile/Index/${encodeURIComponent(comment.authorUserName)}`;
         const avatarContent = comment.authorProfilePictureUrl
             ? `<img src="${escapeHtml(comment.authorProfilePictureUrl)}" alt="${escapeHtml(comment.authorName)}" class="comment-avatar-img" />`
-            : `<div class="comment-avatar-placeholder"><i class="bi bi-person-fill"></i></div>`;
+            : `<div class="comment-avatar-placeholder">${escapeHtml(getAvatarInitial(comment.authorName))}</div>`;
         const avatarHtml = `<a href="${profileUrl}" class="text-decoration-none">${avatarContent}</a>`;
 
         const ownerActions = comment.isOwner ? `

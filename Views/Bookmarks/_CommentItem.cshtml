@@ -1,5 +1,11 @@
 @model markly.ViewModels.CommentDto
 
+@{
+    var authorInitial = string.IsNullOrWhiteSpace(Model.AuthorName)
+        ? "U"
+        : Model.AuthorName.Trim().Substring(0, 1).ToUpperInvariant();
+}
+
 <div class="comment-item card border-0 shadow-sm mb-3" data-comment-id="@Model.Id">
     <div class="card-body">
         <div class="d-flex gap-3">
@@ -10,9 +16,7 @@
                 }
                 else
                 {
-                    <div class="comment-avatar-placeholder">
-                        <i class="bi bi-person-fill"></i>
-                    </div>
+                    <div class="comment-avatar-placeholder">@authorInitial</div>
                 }
             </a>
             <div class="flex-grow-1">

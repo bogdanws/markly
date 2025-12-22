@@ -31,6 +31,7 @@ public class HomeController : Controller
     public async Task<IActionResult> Index(string? filter, int page = 1)
     {
         var model = await GetBookmarksAsync(filter, page);
+        ViewData["WelcomeName"] = await GetWelcomeNameAsync();
         return View(model);
     }
 
@@ -97,6 +98,28 @@ public class HomeController : Controller
             PageNumber = pageNumber,
             TotalPages = totalPages
         };
+    }
+
+    private async Task<string?> GetWelcomeNameAsync()
+    {
+        if (!(User.Identity?.IsAuthenticated ?? false))
+        {
+            return null;
+        }
+
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return null;
+        }
+
+        var fullName = $"{user.FirstName} {user.LastName}".Trim();
+        if (!string.IsNullOrWhiteSpace(fullName))
+        {
+            return fullName;
+        }
+
+        return user.FirstName ?? user.LastName ?? user.UserName;
     }
 
     public IActionResult Privacy()
