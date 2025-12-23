@@ -330,6 +330,7 @@ public class BookmarksController : Controller
             UpdatedAt = bookmark.UpdatedAt,
             IsPublic = bookmark.IsPublic,
             AuthorName = UserHelper.GetAuthorName(bookmark.User),
+            AuthorUsername = bookmark.User?.UserName ?? string.Empty,
             CanEdit = IsOwner(bookmark, currentUserId),
             MediaContent = media,
             VoteCount = bookmark.Votes?.Count ?? 0,

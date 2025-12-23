@@ -1,8 +1,61 @@
 @model BookmarkDetailsViewModel
 @using System.Text.Encodings.Web
+@using System.Text.RegularExpressions
 
 @{
     ViewData["Title"] = Model.Title;
+}
+
+@functions {
+    private static string Linkify(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return text;
+
+        var urlPattern = @"(https?://[^\s]+|www\.[^\s]+)";
+        var sb = new System.Text.StringBuilder();
+        var lastIndex = 0;
+
+        foreach (Match match in Regex.Matches(text, urlPattern, RegexOptions.IgnoreCase))
+        {
+            sb.Append(HtmlEncoder.Default.Encode(text.Substring(lastIndex, match.Index - lastIndex)));
+
+            var rawUrl = match.Value;
+            var trailing = "";
+            while (rawUrl.Length > 0 && ".,);?!]".Contains(rawUrl[^1]))
+            {
+                trailing = rawUrl[^1] + trailing;
+                rawUrl = rawUrl[..^1];
+            }
+
+            var href = rawUrl.StartsWith("www.", StringComparison.OrdinalIgnoreCase)
+                ? "https://" + rawUrl
+                : rawUrl;
+
+            sb.Append($"<a href=\"{href}\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"text-decoration-none\">{HtmlEncoder.Default.Encode(rawUrl)}</a>");
+            sb.Append(HtmlEncoder.Default.Encode(trailing));
+
+            lastIndex = match.Index + match.Length;
+        }
+
+        if (lastIndex < text.Length)
+            sb.Append(HtmlEncoder.Default.Encode(text.Substring(lastIndex)));
+
+        return sb.ToString();
+    }
+
+    private static string LinkifyWithLineBreaks(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return text;
+
+        var linked = Linkify(text);
+        // Replace both raw newlines and HTML-encoded versions (&#xD; = \r, &#xA; = \n)
+        return linked
+            .Replace("&#xD;&#xA;", "<br />")
+            .Replace("&#xD;", "")
+            .Replace("&#xA;", "<br />")
+            .Replace("\r\n", "<br />")
+            .Replace("\n", "<br />");
+    }
 }
 
 <section class="container py-5" style="max-width: 860px;">
@@ -22,9 +75,10 @@
                         </span>
                     </div>
                     <h1 class="h3 mb-2">@Model.Title</h1>
-                    <p class="text-muted fs-5 mb-2">@Model.Description</p>
+                    <p class="text-muted fs-5 mb-2">@Html.Raw(LinkifyWithLineBreaks(Model.Description))</p>
                     <small class="text-muted d-block">
-                        <i class="bi bi-person-circle me-1"></i> @Model.AuthorName
+                        <i class="bi bi-person-circle me-1"></i>
+                        <a href="/u/@Model.AuthorUsername" class="text-decoration-none text-muted">@Model.AuthorName</a>
                         <span class="mx-2">•</span>
                         <i class="bi bi-clock me-1"></i> @Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, HH:mm")
                         @if (Model.UpdatedAt.HasValue)
@@ -58,14 +112,12 @@
             <div class="bookmark-media">
                 @if (!string.IsNullOrWhiteSpace(Model.MediaContent.TextContent))
                 {
-                    var encoded = HtmlEncoder.Default.Encode(Model.MediaContent.TextContent);
-                    var formatted = encoded.Replace("\n", "<br />");
                     <div class="mb-4">
                         <h5 class="fw-semibold text-secondary mb-3">
                             <i class="bi bi-journal-text me-2"></i>Notes
                         </h5>
                         <div class="p-3 bg-light rounded border border-light-subtle">
-                            @Html.Raw(formatted)
+                            @Html.Raw(LinkifyWithLineBreaks(Model.MediaContent.TextContent))
                         </div>
                     </div>
                 }

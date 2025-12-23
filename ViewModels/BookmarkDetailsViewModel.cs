@@ -11,6 +11,7 @@ public class BookmarkDetailsViewModel
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public string AuthorName { get; set; } = string.Empty;
+    public string AuthorUsername { get; set; } = string.Empty;
     public bool CanEdit { get; set; }
     public BookmarkMediaContent MediaContent { get; set; } = new();
     public List<CommentDto> Comments { get; set; } = new();
