@@ -1,6 +1,6 @@
 /**
- * Horizontal-First Masonry Grid
- * Places items in rows (A B C, D E F) while allowing variable heights
+ * Shortest-Column-First Masonry Grid
+ * Places each item in the column with the smallest height
  */
 (function() {
     'use strict';
@@ -30,7 +30,23 @@
     }
 
     /**
-     * Layout a single masonry grid with horizontal-first ordering
+     * Find the index of the shortest column
+     */
+    function getShortestColumn(columnHeights) {
+        let minIndex = 0;
+        let minHeight = columnHeights[0];
+        for (let i = 1; i < columnHeights.length; i++) {
+            if (columnHeights[i] < minHeight) {
+                minHeight = columnHeights[i];
+                minIndex = i;
+            }
+        }
+        return minIndex;
+    }
+
+    /**
+     * Layout a single masonry grid with shortest-column-first ordering
+     * Items are placed into the column with the smallest current height
      */
     function layoutGrid(grid) {
         const items = Array.from(grid.querySelectorAll(ITEM_SELECTOR));
@@ -61,33 +77,30 @@
         // Set up grid for absolute positioning
         grid.style.position = 'relative';
 
-        // Position each item
-        items.forEach((item, index) => {
-            // Horizontal-first: place in column based on index modulo
-            const col = index % columnCount;
+        // Position each item in the shortest column
+        items.forEach((item) => {
+            // Set width first so we can measure accurate height
+            item.style.width = `${columnWidth}px`;
+            item.style.position = 'absolute';
+
+            // Find the shortest column
+            const col = getShortestColumn(columnHeights);
 
             // Calculate position
             const left = col * (columnWidth + GAP);
+            const top = columnHeights[col];
 
-            // For the top position, we need the height of all items above in this column
-            // Find all previous items in this column
-            let top = 0;
-            for (let i = col; i < index; i += columnCount) {
-                top += items[i].offsetHeight + GAP;
-            }
-
-            // Apply styles
-            item.style.position = 'absolute';
+            // Apply position
             item.style.left = `${left}px`;
             item.style.top = `${top}px`;
-            item.style.width = `${columnWidth}px`;
 
-            // Update column height
-            columnHeights[col] = top + item.offsetHeight;
+            // Update column height (add gap for next item)
+            columnHeights[col] = top + item.offsetHeight + GAP;
         });
 
-        // Set grid height to tallest column
-        grid.style.height = `${Math.max(...columnHeights)}px`;
+        // Set grid height to tallest column (subtract the extra gap added after last item)
+        const maxHeight = Math.max(...columnHeights);
+        grid.style.height = `${maxHeight > 0 ? maxHeight - GAP : 0}px`;
     }
 
     /**
