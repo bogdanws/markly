@@ -7,28 +7,26 @@
     var user = await UserManager.GetUserAsync(User);
     var isAdmin = User.IsInRole("Admin");
 
-    <ul class="navbar-nav">
-        <li class="nav-item">
-            <a class="btn btn-success btn-sm me-2 mt-1" asp-controller="Bookmarks" asp-action="Create">
-                <i class="bi bi-plus-circle"></i> New Bookmark
-            </a>
-        </li>
+    <div class="nav-user">
+        <a class="btn btn-success" asp-controller="Bookmarks" asp-action="Create">
+            <i class="bi bi-plus"></i>
+            <span>New Bookmark</span>
+        </a>
 
-        <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown"
+        <div class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="userDropdown"
                role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 @if (!string.IsNullOrEmpty(user?.ProfilePictureUrl))
                 {
-                    <img src="@user.ProfilePictureUrl" alt="Profile" class="rounded-circle me-2"
-                         style="width: 32px; height: 32px;">
+                    <img src="@user.ProfilePictureUrl" alt="Profile" class="user-avatar">
                 }
                 else
                 {
-                    <div class="icon-circle me-2" style="width: 32px; height: 32px; background-color: var(--accent); color: white; font-size: 0.875rem;">
+                    <div class="user-avatar user-avatar--initial">
                         @(user?.FirstName?.Substring(0, 1).ToUpper() ?? "U")
                     </div>
                 }
-                <span>@(user?.FirstName ?? user?.UserName ?? "User")</span>
+                <span class="user-name">@(user?.FirstName ?? user?.UserName ?? "User")</span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                 <li>
@@ -69,12 +67,12 @@
                     </form>
                 </li>
             </ul>
-        </li>
-    </ul>
+        </div>
+    </div>
 }
 else
 {
-    <div class="d-flex flex-column flex-lg-row gap-2">
+    <div class="nav-auth">
         <a class="btn btn-outline-primary" asp-controller="Account" asp-action="Login">
             Login
         </a>
