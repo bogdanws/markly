@@ -7,8 +7,8 @@
 }
 
 .search-shortcut-hint kbd {
-    background: var(--gray-200);
-    border: 1px solid var(--gray-300);
+    background: var(--sand-200);
+    border: 1px solid var(--sand-300);
     border-radius: 4px;
     padding: 0.1rem 0.4rem;
     font-family: inherit;
@@ -26,7 +26,7 @@
 }
 
 .search-clear-btn:hover {
-    background-color: var(--gray-100);
+    background-color: var(--sand-100);
 }
 
 .search-loading-indicator {
@@ -36,12 +36,12 @@
 
 /* Advanced Filters Toggle */
 .advanced-filters-toggle {
-    color: var(--gray-600);
+    color: var(--sand-600);
     font-size: 0.875rem;
 }
 
 .advanced-filters-toggle:hover {
-    color: var(--purple-primary);
+    color: var(--accent);
 }
 
 .advanced-filters-toggle .collapse-icon {
@@ -63,9 +63,9 @@
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    background: var(--purple-glow);
-    border: 1px solid var(--purple-light);
-    color: var(--purple-primary);
+    background: var(--accent-glow);
+    border: 1px solid var(--accent-light);
+    color: var(--accent);
     padding: 0.35rem 0.75rem;
     border-radius: 2rem;
     font-size: 0.8125rem;
@@ -77,7 +77,7 @@
     border: none;
     padding: 0;
     margin-left: 0.25rem;
-    color: var(--purple-primary);
+    color: var(--accent);
     cursor: pointer;
     opacity: 0.7;
     line-height: 1;
@@ -89,9 +89,9 @@
 
 /* Recent Searches */
 .recent-search-btn {
-    background: var(--gray-100);
-    border: 1px solid var(--gray-200);
-    color: var(--gray-700);
+    background: var(--sand-100);
+    border: 1px solid var(--sand-200);
+    color: var(--sand-700);
     font-size: 0.8125rem;
     padding: 0.35rem 0.75rem;
     border-radius: 2rem;
@@ -101,8 +101,8 @@
 }
 
 .recent-search-btn:hover {
-    background: var(--gray-200);
-    border-color: var(--gray-300);
+    background: var(--sand-200);
+    border-color: var(--sand-300);
 }
 
 .recent-search-remove {
@@ -129,7 +129,7 @@
 .suggestion-group-title {
     font-size: 0.8125rem;
     font-weight: 600;
-    color: var(--gray-500);
+    color: var(--sand-500);
     margin-bottom: 0.75rem;
 }
 
@@ -144,33 +144,33 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.4rem 0.85rem;
-    background: white;
-    border: 1px solid var(--gray-200);
+    background: var(--cream);
+    border: 1px solid var(--sand-200);
     border-radius: 2rem;
-    color: var(--gray-700);
+    color: var(--sand-700);
     text-decoration: none;
     font-size: 0.875rem;
 }
 
 .suggestion-pill:hover {
-    border-color: var(--purple-primary);
-    color: var(--purple-primary);
+    border-color: var(--accent);
+    color: var(--accent);
 }
 
 .suggestion-pill-count {
     font-size: 0.75rem;
-    color: var(--gray-400);
+    color: var(--sand-400);
 }
 
 .suggestion-pill:hover .suggestion-pill-count {
-    color: var(--purple-light);
+    color: var(--accent-light);
 }
 
 /* Results Count */
 .results-count-number {
     display: inline-block;
     font-weight: 700;
-    color: var(--purple-primary);
+    color: var(--accent);
 }
 
 /* Skeleton Loading */
@@ -181,7 +181,7 @@
 
 .skeleton-media {
     height: 120px;
-    background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 50%, var(--gray-100) 75%);
+    background: linear-gradient(90deg, var(--sand-100) 25%, var(--sand-200) 50%, var(--sand-100) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
 }
@@ -189,7 +189,7 @@
 .skeleton-title {
     height: 1.25rem;
     width: 80%;
-    background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 50%, var(--gray-100) 75%);
+    background: linear-gradient(90deg, var(--sand-100) 25%, var(--sand-200) 50%, var(--sand-100) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
     border-radius: var(--radius-sm);
@@ -199,7 +199,7 @@
 .skeleton-description {
     height: 0.875rem;
     width: 100%;
-    background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 50%, var(--gray-100) 75%);
+    background: linear-gradient(90deg, var(--sand-100) 25%, var(--sand-200) 50%, var(--sand-100) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
     border-radius: var(--radius-sm);
@@ -213,7 +213,7 @@
 .skeleton-meta,
 .skeleton-stats {
     height: 0.75rem;
-    background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 50%, var(--gray-100) 75%);
+    background: linear-gradient(90deg, var(--sand-100) 25%, var(--sand-200) 50%, var(--sand-100) 75%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
     border-radius: var(--radius-sm);
@@ -238,8 +238,8 @@
 
 /* Search Highlight */
 .search-highlight {
-    background-color: rgba(124, 58, 237, 0.15);
-    color: var(--purple-primary);
+    background-color: var(--accent-12);
+    color: var(--accent);
     border-radius: 3px;
     font-weight: 600;
 }
@@ -271,7 +271,7 @@
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: var(--purple-primary);
+    background: var(--accent);
     animation: dotBounce 1.4s ease-in-out infinite;
 }
 
@@ -311,12 +311,12 @@
     right: 0;
     top: 50%;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--gray-300), transparent);
+    background: linear-gradient(90deg, transparent, var(--sand-300), transparent);
 }
 
 .end-of-results-text {
     position: relative;
-    background: var(--gray-50);
+    background: var(--sand-50);
     padding: 0 1rem;
 }
 
@@ -329,7 +329,7 @@
 
 .empty-state-card {
     background: white;
-    border: 1px solid var(--gray-200);
+    border: 1px solid var(--sand-200);
     border-radius: var(--radius-xl);
     padding: 3rem 2.5rem;
     max-width: 480px;
@@ -350,7 +350,7 @@
 .empty-state-icon-bg {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, var(--purple-glow), var(--purple-light-subtle));
+    background: linear-gradient(135deg, var(--sand-100), var(--sand-200));
     border-radius: 50%;
 }
 
@@ -361,24 +361,24 @@
 .empty-state-icon i {
     position: relative;
     font-size: 2rem;
-    color: var(--purple-primary);
+    color: var(--ochre);
     z-index: 1;
 }
 
 .empty-state-title {
     font-size: 1.25rem;
     font-weight: 700;
-    color: var(--gray-900);
+    color: var(--sand-900);
     margin-bottom: 0.5rem;
 }
 
 .empty-state-description {
-    color: var(--gray-600);
+    color: var(--sand-600);
     margin-bottom: 1.5rem;
 }
 
 .empty-state-suggestions {
-    background: var(--gray-50);
+    background: var(--sand-50);
     border-radius: var(--radius-lg);
     padding: 1.25rem;
     margin-bottom: 1.5rem;
@@ -388,7 +388,7 @@
 .suggestion-label {
     font-size: 0.75rem;
     font-weight: 600;
-    color: var(--gray-500);
+    color: var(--sand-500);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 0.75rem;
@@ -405,9 +405,9 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.5rem 0;
-    color: var(--gray-700);
+    color: var(--sand-700);
     font-size: 0.875rem;
-    border-bottom: 1px solid var(--gray-200);
+    border-bottom: 1px solid var(--sand-200);
     transition: all 0.2s ease;
 }
 
@@ -416,7 +416,7 @@
 }
 
 .suggestion-list li i {
-    color: var(--gray-400);
+    color: var(--sand-400);
     font-size: 1rem;
     flex-shrink: 0;
 }
@@ -426,17 +426,17 @@
 }
 
 .suggestion-actionable:hover {
-    color: var(--purple-primary);
+    color: var(--accent);
     padding-left: 0.5rem;
 }
 
 .suggestion-actionable:hover i {
-    color: var(--purple-primary);
+    color: var(--accent);
 }
 
 .remove-filter-btn {
     font-size: 0.75rem;
-    color: var(--purple-primary);
+    color: var(--accent);
     text-decoration: none;
     margin-left: auto;
 }
