@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Markly</title>
 
-    <!-- Inter Font from Google Fonts -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -19,41 +19,42 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-    <header class="header-gradient sticky-top">
+    <header class="site-header sticky-top">
         <nav class="navbar navbar-expand-lg">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-controller="Home" asp-action="Index">
-                    Markly
+                    <span class="brand-text">Markly</span>
+                    <svg class="brand-accent" width="68" height="8" viewBox="0 0 68 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 5.5C4 4.8 6.5 3.2 10 4C14 5 16 2.5 21 3.2C26 4 29 5.8 34 4.5C38 3.5 42 2 47 3.8C51 5.2 55 3 59 4C62 4.7 65 3.5 67 4.2"
+                                stroke="currentColor"
+                                stroke-width="2.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"/>
+                    </svg>
                 </a>
 
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"
                         aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+                    <i class="bi bi-list"></i>
                 </button>
 
                 <div class="collapse navbar-collapse" id="navbarMain">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <ul class="navbar-nav nav-main">
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Home" asp-action="Index">
-                                Home
+                                <span>Home</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Bookmarks" asp-action="Browse">
-                                Browse
+                                <span>Browse</span>
                             </a>
                         </li>
                     </ul>
 
-                    <form class="d-flex me-lg-3 mb-3 mb-lg-0 search-form" asp-controller="Search" asp-action="Index" method="get">
-                        <div class="input-group">
-                            <span class="input-group-text">
-                                <i class="bi bi-search"></i>
-                            </span>
-                            <input class="form-control" type="search" name="q"
-                                   placeholder="Search bookmarks..." aria-label="Search">
-                            <button class="btn btn-primary" type="submit">Search</button>
-                        </div>
+                    <form class="nav-search" asp-controller="Search" asp-action="Index" method="get">
+                        <i class="bi bi-search nav-search__icon"></i>
+                        <input type="search" name="q" placeholder="Search the library..." aria-label="Search">
                     </form>
 
                     <partial name="_LoginPartial" />

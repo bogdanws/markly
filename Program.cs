@@ -101,6 +101,9 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Handle 404 and other status codes with custom error page
+app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
+
 app.UseHttpsRedirection();
 app.UseRouting();
 

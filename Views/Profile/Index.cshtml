@@ -8,9 +8,9 @@
     <div class="row g-5">
         @* Sidebar: User Profile *@
         <div class="col-lg-4">
-            <div class="card shadow-sm border-0 sticky-top" style="top: 2rem; z-index: 1;">
+            <div class="card shadow-sm sticky-top" style="top: 2rem; z-index: 1;">
                 <!-- Banner Background -->
-                <div role="presentation" aria-hidden="true" style="height: 120px; background: linear-gradient(135deg, var(--purple-primary), #A78BFA); border-radius: var(--radius-lg) var(--radius-lg) 0 0;"></div>
+                <div role="presentation" aria-hidden="true" style="height: 120px; background: linear-gradient(135deg, var(--accent), var(--accent-light)); border-radius: var(--radius-lg) var(--radius-lg) 0 0;"></div>
                 
                 <div class="card-body text-center pt-0 position-relative">
                     <!-- Profile Picture with border -->
@@ -93,9 +93,7 @@
             else
             {
                 <div class="text-center py-5 text-muted bg-white border rounded-4">
-                    <div class="mb-3">
-                        <i class="bi bi-journal-bookmark" style="font-size: 3rem; opacity: 0.5;"></i>
-                    </div>
+                    <img src="~/images/illustrations/no-bookmarks.svg" alt="" class="img-fluid mb-3" style="max-height: 160px;">
                     <h5 class="fw-normal">No bookmarks yet</h5>
                     <p class="small">This user hasn't shared any bookmarks.</p>
                 </div>

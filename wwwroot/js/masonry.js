@@ -16,7 +16,9 @@
         const width = window.innerWidth;
         let columns;
 
-        if (width >= 1200) columns = 3;
+        if (width >= 2000) columns = 5;
+        else if (width >= 1400) columns = 4;
+        else if (width >= 1200) columns = 3;
         else if (width >= 768) columns = 2;
         else columns = 1;
 

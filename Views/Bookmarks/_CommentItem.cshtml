@@ -6,7 +6,7 @@
         : Model.AuthorFirstName.Trim().Substring(0, 1).ToUpperInvariant();
 }
 
-<div class="comment-item card border-0 shadow-sm mb-3" data-comment-id="@Model.Id">
+<div class="comment-item card shadow-sm mb-3" data-comment-id="@Model.Id">
     <div class="card-body">
         <div class="d-flex gap-3">
             <a asp-controller="Profile" asp-action="Index" asp-route-username="@Model.AuthorUserName" class="comment-item__avatar flex-shrink-0 text-decoration-none">
