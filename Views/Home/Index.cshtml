@@ -134,18 +134,12 @@ else
                 <h1 class="h3 fw-bold mb-2">Welcome back, @welcomeName!</h1>
                 <p class="text-muted mb-0">Here are the latest discoveries from the community.</p>
             </div>
-            <a asp-controller="Bookmarks" asp-action="Create" class="btn btn-success shadow-sm hover-lift">
-                <i class="bi bi-plus-lg me-2"></i>New Bookmark
-            </a>
-        </div>
-
-        <div class="d-flex align-items-center justify-content-between mb-4">
             <div class="btn-group shadow-sm" role="group">
-                <a asp-action="Index" asp-route-filter="recent" 
+                <a asp-action="Index" asp-route-filter="recent"
                     class="btn @(isRecent ? "btn-primary" : "btn-light bg-white text-muted border") px-4">
                     Recent
                 </a>
-                <a asp-action="Index" asp-route-filter="popular" 
+                <a asp-action="Index" asp-route-filter="popular"
                     class="btn @(!isRecent ? "btn-primary" : "btn-light bg-white text-muted border") px-4">
                     Popular
                 </a>

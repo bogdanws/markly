@@ -627,6 +627,8 @@ p {
 
     .nav-search {
         margin: 0 0 1rem 0;
+        flex: 1;
+        width: 100%;
     }
 
     .nav-search input {
@@ -663,6 +665,16 @@ p {
 
     .nav-search input:focus {
         width: 280px;
+    }
+}
+
+@media (max-width: 991px) {
+    .nav-search input {
+        width: 100%;
+    }
+
+    .nav-search input:focus {
+        width: 100%;
     }
 }
 
