@@ -112,6 +112,7 @@
         window.isAuthenticated = @((User.Identity?.IsAuthenticated ?? false).ToString().ToLower());
     </script>
     <script src="~/js/votes.js" asp-append-version="true"></script>
+    <script src="~/js/bookmark-actions.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

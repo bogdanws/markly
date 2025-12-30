@@ -42,6 +42,11 @@
                     <i class="bi @(Model.IsLikedByCurrentUser ? "bi-heart-fill" : "bi-heart")"></i>
                     <span class="vote-count">@Model.VoteCount</span>
                 </button>
+                <button type="button" class="action-btn save-btn"
+                        data-bookmark-id="@Model.Id"
+                        title="Save to category">
+                    <i class="bi bi-bookmark"></i>
+                </button>
             </div>
         </div>
     </article>

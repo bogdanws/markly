@@ -99,6 +99,7 @@ public class CategoriesController : Controller
         }
 
         // Fetch bookmarks
+        var currentUserId = currentUser?.Id;
         var bookmarksRaw = await _context.BookmarkCategories
             .Where(bc => bc.CategoryId == id)
             .Where(bc => isOwner || bc.Bookmark.IsPublic)
@@ -123,7 +124,8 @@ public class CategoriesController : Controller
                 VoteCount = b.Votes.Count,
                 MediaImageUrl = media.ImageUrl,
                 MediaTextPreview = UserHelper.BuildTextPreview(media.TextContent, 160),
-                IsPrivate = !b.IsPublic
+                IsPrivate = !b.IsPublic,
+                IsLikedByCurrentUser = currentUserId != null && b.Votes.Any(v => v.UserId == currentUserId)
             };
         }).ToList();
 
@@ -295,6 +297,76 @@ public class CategoriesController : Controller
         await _context.SaveChangesAsync();
 
         return Ok(new { success = true, category = new { id = category.Id, name = category.Name } });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleBookmark([FromBody] ToggleBookmarkCategoryDto dto)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Unauthorized();
+
+        // Verify category belongs to user
+        var category = await _context.Categories
+            .FirstOrDefaultAsync(c => c.Id == dto.CategoryId && c.UserId == user.Id);
+        if (category == null)
+        {
+            return NotFound(new { success = false, message = "Category not found." });
+        }
+
+        // Verify bookmark exists and is accessible
+        var bookmark = await _context.Bookmarks
+            .FirstOrDefaultAsync(b => b.Id == dto.BookmarkId && (b.IsPublic || b.UserId == user.Id));
+        if (bookmark == null)
+        {
+            return NotFound(new { success = false, message = "Bookmark not found." });
+        }
+
+        // Check if relationship exists
+        var existing = await _context.BookmarkCategories
+            .FirstOrDefaultAsync(bc => bc.BookmarkId == dto.BookmarkId && bc.CategoryId == dto.CategoryId);
+
+        bool isInCategory;
+        if (existing != null)
+        {
+            // Remove from category
+            _context.BookmarkCategories.Remove(existing);
+            isInCategory = false;
+        }
+        else
+        {
+            // Add to category
+            _context.BookmarkCategories.Add(new BookmarkCategory
+            {
+                BookmarkId = dto.BookmarkId,
+                CategoryId = dto.CategoryId
+            });
+            isInCategory = true;
+        }
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new { success = true, isInCategory, categoryName = category.Name });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetUserCategories(int bookmarkId)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Unauthorized();
+
+        var categories = await _context.Categories
+            .Where(c => c.UserId == user.Id)
+            .OrderBy(c => c.Name)
+            .Select(c => new
+            {
+                id = c.Id,
+                name = c.Name,
+                isInCategory = c.BookmarkCategories.Any(bc => bc.BookmarkId == bookmarkId)
+            })
+            .ToListAsync();
+
+        return Ok(new { success = true, categories });
     }
 
     private static string NormalizeName(string name)
