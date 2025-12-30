@@ -110,10 +110,25 @@ These accounts come with sample bookmarks, categories, tags, comments, and votes
 #### Option 2: Docker
 
 1. **Configure environment variables** in `docker-compose.yml`:
-   ```yaml
-   environment:
-     Anthropic__ApiKey: your_anthropic_api_key_here
-   ```
+    ```yaml
+    environment:
+       Anthropic__ApiKey: ${ANTHROPIC_API_KEY}
+    ```
+
+    You can provide the `ANTHROPIC_API_KEY` in two common ways:
+
+    - Option A: Export a system environment variable (useful for CI or local shells)
+
+       ```bash
+       export ANTHROPIC_API_KEY="your_actual_api_key"
+       docker compose up -d
+       ```
+
+    - Option B: Create a `.env` file next to `docker-compose.yml` (recommended for local development)
+
+       ```env
+       ANTHROPIC_API_KEY=your_actual_api_key
+       ```
 
 2. **Start all services** (PostgreSQL, app, and Caddy reverse proxy):
    ```bash

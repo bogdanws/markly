@@ -19,7 +19,7 @@ services:
     environment:
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=markly;Username=markly_user;Password=markly_password
       ASPNETCORE_ENVIRONMENT: Production
-      Anthropic__ApiKey: your_anthropic_api_key_here
+      Anthropic__ApiKey: ${ANTHROPIC_API_KEY}
     depends_on:
       - postgres
     restart: unless-stopped
