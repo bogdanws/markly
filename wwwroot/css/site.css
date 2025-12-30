@@ -3969,3 +3969,21 @@ a:focus {
     background: var(--sand-50);
     padding: 0 1rem;
 }
+
+/* ===== Error Page ===== */
+.error-page {
+    min-height: calc(100vh - 68px);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding-top: calc(20vh - 68px);
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: 2rem;
+}
+
+.error-page__content {
+    max-width: 480px;
+    width: 100%;
+}
