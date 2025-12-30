@@ -1,0 +1,229 @@
+@model BrowseViewModel
+@{
+    ViewData["Title"] = "Browse Bookmarks";
+}
+
+<section class="browse-page py-4">
+    <div class="container">
+        @* Page Header *@
+        <div class="browse-header mb-4">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                <div>
+                    <h1 class="h3 mb-2">Browse Bookmarks</h1>
+                    <p class="text-muted mb-0">Discover bookmarks from the community</p>
+                </div>
+                <div class="browse-sort">
+                    <label class="form-label small text-muted mb-1">Sort by</label>
+                    <select class="form-select form-select-sm" id="sortSelect" style="min-width: 150px;">
+                        <option value="recent" selected="@(Model.Sort == "recent")">Most Recent</option>
+                        <option value="popular" selected="@(Model.Sort == "popular")">Most Popular</option>
+                        <option value="discussed" selected="@(Model.Sort == "discussed")">Most Discussed</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        @* Trending Tags Section *@
+        @if (Model.TrendingTags.Any())
+        {
+            <div class="browse-section mb-4">
+                <div class="browse-section__header mb-3">
+                    <h2 class="h6 mb-0">
+                        <i class="bi bi-tags me-2"></i>Trending Tags
+                    </h2>
+                </div>
+                <div class="trending-tags">
+                    @foreach (var tag in Model.TrendingTags)
+                    {
+                        var isActive = Model.TagId == tag.Id;
+                        <a href="@Url.Action("Browse", new { tag = tag.Id, sort = Model.Sort, category = Model.CategoryId, time = Model.TimeRange })"
+                           class="trending-tag @(isActive ? "trending-tag--active" : "")">
+                            <span class="trending-tag__name">@tag.Name</span>
+                            <span class="trending-tag__count">@tag.BookmarkCount</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+
+        @* Browse by Category Section *@
+        @if (Model.Categories.Any())
+        {
+            <div class="browse-section mb-4">
+                <div class="browse-section__header mb-3">
+                    <h2 class="h6 mb-0">
+                        <i class="bi bi-folder me-2"></i>Browse by Category
+                    </h2>
+                </div>
+                <div class="category-grid">
+                    @foreach (var cat in Model.Categories)
+                    {
+                        var isActive = Model.CategoryId == cat.Id;
+                        <a href="@Url.Action("Browse", new { category = cat.Id, sort = Model.Sort, tag = Model.TagId, time = Model.TimeRange })"
+                           class="category-card @(isActive ? "category-card--active" : "")">
+                            <div class="category-card__icon">
+                                <i class="bi bi-folder2"></i>
+                            </div>
+                            <div class="category-card__content">
+                                <h3 class="category-card__name">@cat.Name</h3>
+                                <p class="category-card__count">@cat.BookmarkCount bookmarks</p>
+                            </div>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+
+        @* Filter Bar *@
+        <div class="browse-filters mb-4">
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <div class="filter-group">
+                    <label class="form-label small text-muted mb-1">Time</label>
+                    <select class="form-select form-select-sm" id="timeSelect">
+                        <option value="" selected="@(string.IsNullOrEmpty(Model.TimeRange))">All Time</option>
+                        <option value="day" selected="@(Model.TimeRange == "day")">Today</option>
+                        <option value="week" selected="@(Model.TimeRange == "week")">This Week</option>
+                        <option value="month" selected="@(Model.TimeRange == "month")">This Month</option>
+                        <option value="year" selected="@(Model.TimeRange == "year")">This Year</option>
+                    </select>
+                </div>
+            </div>
+
+            @* Active Filters *@
+            @if (Model.HasActiveFilters)
+            {
+                <div class="active-filters mt-3">
+                    <span class="text-muted small me-2">Active filters:</span>
+                    @if (!string.IsNullOrEmpty(Model.ActiveTagName))
+                    {
+                        <a href="@Url.Action("Browse", new { sort = Model.Sort, category = Model.CategoryId, time = Model.TimeRange })"
+                           class="filter-chip">
+                            <i class="bi bi-tag me-1"></i>@Model.ActiveTagName
+                            <i class="bi bi-x-lg ms-1"></i>
+                        </a>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.ActiveCategoryName))
+                    {
+                        <a href="@Url.Action("Browse", new { sort = Model.Sort, tag = Model.TagId, time = Model.TimeRange })"
+                           class="filter-chip">
+                            <i class="bi bi-folder me-1"></i>@Model.ActiveCategoryName
+                            <i class="bi bi-x-lg ms-1"></i>
+                        </a>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.TimeRange))
+                    {
+                        <a href="@Url.Action("Browse", new { sort = Model.Sort, tag = Model.TagId, category = Model.CategoryId })"
+                           class="filter-chip">
+                            <i class="bi bi-clock me-1"></i>@(Model.TimeRange switch { "day" => "Today", "week" => "This Week", "month" => "This Month", "year" => "This Year", _ => Model.TimeRange })
+                            <i class="bi bi-x-lg ms-1"></i>
+                        </a>
+                    }
+                    <a href="@Url.Action("Browse")" class="btn btn-link btn-sm text-muted p-0 ms-2">
+                        Clear all
+                    </a>
+                </div>
+            }
+        </div>
+
+        @* Results Header *@
+        <div class="browse-results-header mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="h6 mb-0">
+                    <i class="bi bi-bookmark me-2"></i>All Bookmarks
+                </h2>
+                <span class="text-muted small">
+                    @if (Model.TotalResults > 0)
+                    {
+                        var start = (Model.PageNumber - 1) * 12 + 1;
+                        var end = Math.Min(Model.PageNumber * 12, Model.TotalResults);
+                        @:Showing @start-@end of @Model.TotalResults
+                    }
+                </span>
+            </div>
+            <div class="browse-sort-tabs mt-3">
+                <a href="@Url.Action("Browse", new { sort = "recent", tag = Model.TagId, category = Model.CategoryId, time = Model.TimeRange })"
+                   class="sort-tab @(Model.Sort == "recent" ? "sort-tab--active" : "")">
+                    Recent
+                </a>
+                <a href="@Url.Action("Browse", new { sort = "popular", tag = Model.TagId, category = Model.CategoryId, time = Model.TimeRange })"
+                   class="sort-tab @(Model.Sort == "popular" ? "sort-tab--active" : "")">
+                    Popular
+                </a>
+                <a href="@Url.Action("Browse", new { sort = "discussed", tag = Model.TagId, category = Model.CategoryId, time = Model.TimeRange })"
+                   class="sort-tab @(Model.Sort == "discussed" ? "sort-tab--active" : "")">
+                    Most Discussed
+                </a>
+            </div>
+        </div>
+
+        @* Bookmark Grid *@
+        <div id="browseFeedContainer"
+             data-page="@Model.PageNumber"
+             data-total-pages="@Model.TotalPages"
+             data-sort="@Model.Sort"
+             data-tag="@Model.TagId"
+             data-category="@Model.CategoryId"
+             data-time="@Model.TimeRange">
+            @if (Model.HasBookmarks)
+            {
+                <div class="masonry-grid" id="bookmarkGrid">
+                    @foreach (var bookmark in Model.Bookmarks)
+                    {
+                        <partial name="_BookmarkCard" model="bookmark" />
+                    }
+                </div>
+
+                @if (Model.PageNumber < Model.TotalPages)
+                {
+                    <div class="infinite-scroll-trigger" id="infiniteScrollTrigger">
+                        <div class="infinite-scroll-loader">
+                            <div class="loader-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                            <span class="text-muted small mt-2">Loading more...</span>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="bookmark-empty-state text-center p-5 border rounded-4">
+                    <img src="~/images/illustrations/no-results.svg" alt="" class="img-fluid mb-4" style="max-height: 180px;">
+                    <h3 class="h5 mb-3">No bookmarks found</h3>
+                    <p class="text-muted mb-4">
+                        @if (Model.HasActiveFilters)
+                        {
+                            @:Try adjusting your filters or browse all bookmarks.
+                        }
+                        else
+                        {
+                            @:Be the first to add something interesting for the community.
+                        }
+                    </p>
+                    @if (Model.HasActiveFilters)
+                    {
+                        <a asp-action="Browse" class="btn btn-outline-primary">
+                            <i class="bi bi-x-circle me-1"></i> Clear Filters
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-action="Create" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i> Add Bookmark
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/browse.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="~/js/browse.js" asp-append-version="true"></script>
+}

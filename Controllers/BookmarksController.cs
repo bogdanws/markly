@@ -14,6 +14,8 @@ namespace markly.Controllers;
 
 public class BookmarksController : Controller
 {
+    private const int PageSize = 12;
+
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<BookmarksController> _logger;
@@ -33,6 +35,190 @@ public class BookmarksController : Controller
         _aiSuggestionService = aiSuggestionService;
         _rateLimitingService = rateLimitingService;
     }
+
+    #region Browse
+
+    [AllowAnonymous]
+    [HttpGet]
+    public async Task<IActionResult> Browse(string? sort, int? tag, int? category, string? time, int page = 1)
+    {
+        var model = await GetBrowseDataAsync(sort, tag, category, time, page);
+        return View(model);
+    }
+
+    [AllowAnonymous]
+    [HttpGet]
+    public async Task<IActionResult> BrowseFeed(string? sort, int? tag, int? category, string? time, int page = 1)
+    {
+        var model = await GetBrowseDataAsync(sort, tag, category, time, page);
+        return PartialView("_BrowseFeed", model);
+    }
+
+    private async Task<BrowseViewModel> GetBrowseDataAsync(string? sort, int? tagId, int? categoryId, string? timeRange, int page)
+    {
+        var normalizedSort = NormalizeSort(sort);
+        var pageNumber = page < 1 ? 1 : page;
+        var currentUserId = _userManager.GetUserId(User);
+
+        // Get trending tags (top 8 by bookmark count)
+        var trendingTags = await _context.Tags
+            .AsNoTracking()
+            .Select(t => new TrendingTagViewModel
+            {
+                Id = t.Id,
+                Name = t.Name,
+                BookmarkCount = t.BookmarkTags.Count(bt => bt.Bookmark.IsPublic)
+            })
+            .Where(t => t.BookmarkCount > 0)
+            .OrderByDescending(t => t.BookmarkCount)
+            .Take(8)
+            .ToListAsync();
+
+        // Get public categories with bookmark counts (top 6)
+        var categories = await _context.Categories
+            .AsNoTracking()
+            .Where(c => c.IsPublic)
+            .Select(c => new BrowseCategoryViewModel
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Description = c.Description,
+                BookmarkCount = c.BookmarkCategories.Count(bc => bc.Bookmark.IsPublic),
+                OwnerName = c.User.FirstName != null ? c.User.FirstName : c.User.UserName ?? "Unknown"
+            })
+            .Where(c => c.BookmarkCount > 0)
+            .OrderByDescending(c => c.BookmarkCount)
+            .Take(6)
+            .ToListAsync();
+
+        // Build bookmarks query
+        var bookmarksQuery = _context.Bookmarks
+            .AsNoTracking()
+            .Where(b => b.IsPublic);
+
+        // Apply tag filter
+        if (tagId.HasValue)
+        {
+            bookmarksQuery = bookmarksQuery.Where(b => b.BookmarkTags.Any(bt => bt.TagId == tagId.Value));
+        }
+
+        // Apply category filter
+        if (categoryId.HasValue)
+        {
+            bookmarksQuery = bookmarksQuery.Where(b => b.BookmarkCategories.Any(bc => bc.CategoryId == categoryId.Value));
+        }
+
+        // Apply time range filter
+        if (!string.IsNullOrWhiteSpace(timeRange))
+        {
+            var cutoffDate = timeRange.ToLowerInvariant() switch
+            {
+                "day" => DateTime.UtcNow.AddDays(-1),
+                "week" => DateTime.UtcNow.AddDays(-7),
+                "month" => DateTime.UtcNow.AddMonths(-1),
+                "year" => DateTime.UtcNow.AddYears(-1),
+                _ => (DateTime?)null
+            };
+
+            if (cutoffDate.HasValue)
+            {
+                bookmarksQuery = bookmarksQuery.Where(b => b.CreatedAt >= cutoffDate.Value);
+            }
+        }
+
+        var totalCount = await bookmarksQuery.CountAsync();
+        var totalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)PageSize));
+        pageNumber = Math.Min(pageNumber, totalPages);
+
+        var projectedQuery = bookmarksQuery
+            .Select(b => new
+            {
+                Bookmark = b,
+                User = b.User,
+                VoteCount = b.Votes.Count,
+                CommentCount = b.Comments.Count,
+                IsLikedByCurrentUser = currentUserId != null && b.Votes.Any(v => v.UserId == currentUserId)
+            });
+
+        // Apply sorting
+        projectedQuery = normalizedSort switch
+        {
+            "popular" => projectedQuery.OrderByDescending(x => x.VoteCount).ThenByDescending(x => x.Bookmark.CreatedAt),
+            "discussed" => projectedQuery.OrderByDescending(x => x.CommentCount).ThenByDescending(x => x.Bookmark.CreatedAt),
+            _ => projectedQuery.OrderByDescending(x => x.Bookmark.CreatedAt)
+        };
+
+        var bookmarks = await projectedQuery
+            .Skip((pageNumber - 1) * PageSize)
+            .Take(PageSize)
+            .ToListAsync();
+
+        var bookmarkItems = bookmarks.Select(item =>
+        {
+            var b = item.Bookmark;
+            var media = BookmarkMediaContent.FromJson(b.Content);
+            return new BookmarkListItemViewModel
+            {
+                Id = b.Id,
+                Title = b.Title,
+                Description = b.Description,
+                AuthorName = UserHelper.GetAuthorName(item.User),
+                CreatedAt = b.CreatedAt,
+                VoteCount = item.VoteCount,
+                MediaImageUrl = media.ImageUrl,
+                MediaTextPreview = UserHelper.BuildTextPreview(media.TextContent, 160),
+                IsLikedByCurrentUser = item.IsLikedByCurrentUser
+            };
+        }).ToList();
+
+        // Get active filter names
+        string? activeTagName = null;
+        string? activeCategoryName = null;
+
+        if (tagId.HasValue)
+        {
+            activeTagName = await _context.Tags
+                .Where(t => t.Id == tagId.Value)
+                .Select(t => t.Name)
+                .FirstOrDefaultAsync();
+        }
+
+        if (categoryId.HasValue)
+        {
+            activeCategoryName = await _context.Categories
+                .Where(c => c.Id == categoryId.Value)
+                .Select(c => c.Name)
+                .FirstOrDefaultAsync();
+        }
+
+        return new BrowseViewModel
+        {
+            Sort = normalizedSort,
+            TagId = tagId,
+            CategoryId = categoryId,
+            TimeRange = timeRange,
+            TrendingTags = trendingTags,
+            Categories = categories,
+            Bookmarks = bookmarkItems,
+            PageNumber = pageNumber,
+            TotalPages = totalPages,
+            TotalResults = totalCount,
+            ActiveTagName = activeTagName,
+            ActiveCategoryName = activeCategoryName
+        };
+    }
+
+    private static string NormalizeSort(string? sort)
+    {
+        return sort?.ToLowerInvariant() switch
+        {
+            "popular" => "popular",
+            "discussed" => "discussed",
+            _ => "recent"
+        };
+    }
+
+    #endregion
 
     [Authorize]
     [HttpGet]
