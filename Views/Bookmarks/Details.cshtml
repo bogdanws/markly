@@ -69,11 +69,14 @@
         <div class="card-body p-4">
             <div class="d-flex justify-content-between flex-wrap gap-3 mb-4 border-bottom pb-4">
                 <div>
-                    <div class="mb-2">
-                        <span class="badge bg-@((Model.IsPublic ? "success" : "secondary"))">
-                            @(Model.IsPublic ? "Public" : "Private")
-                        </span>
-                    </div>
+                    @if (!Model.IsPublic)
+                    {
+                        <div class="mb-2">
+                            <span class="badge bg-secondary">
+                                Private
+                            </span>
+                        </div>
+                    }
                     <h1 class="h3 mb-2">@Model.Title</h1>
                     <p class="text-muted fs-5 mb-2">@Html.Raw(LinkifyWithLineBreaks(Model.Description))</p>
                     <small class="text-muted d-block">
